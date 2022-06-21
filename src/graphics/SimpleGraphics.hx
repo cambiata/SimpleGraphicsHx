@@ -20,16 +20,16 @@ typedef GItems = Array<GItem>;
 
 enum GFill {
 	None;
-	Solid(c:Color);
+	Solid(c:GColor);
 	// Gradient( ... );
 }
 
 enum GStroke {
 	None;
-	Stroke(c:Color, width:Float);
+	Stroke(c:GColor, width:Float);
 }
 
-enum Color {
+enum GColor {
 	RGBA(r:Int, g:Int, b:Int, a:Int);
 	Red;
 	Blue;
@@ -193,7 +193,7 @@ class GTools {
 		return newItems;
 	}
 
-	static public function getColor(c:Color):String {
+	static public function getColor(c:GColor):String {
 		return switch c {
 			default: c.getName().toLowerCase();
 		}
@@ -214,7 +214,7 @@ class SvgSurface implements GSurface<String> {
 		} else {
 			this.layerItems = [];
 			this.layers = [
-				Layer(layerItems, null, null, null, null, GFill.Solid(Color.Blue), GStroke.Stroke(Color.Red, 5))
+				Layer(layerItems, null, null, null, null, GFill.Solid(GColor.Blue), GStroke.Stroke(GColor.Red, 5))
 			];
 		}
 	}
@@ -245,14 +245,14 @@ class SvgSurface implements GSurface<String> {
 			this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r, fi, st) => items);
 			final layerFill:GFill = layer.extract(Layer(items, p, s, o, r, fi, st) => fi);
-			final layerFillColor:Color = switch layerFill {
+			final layerFillColor:GColor = switch layerFill {
 				case null: null;
 				case Solid(c): c;
 				default: null;
 			}
 
 			final layerStroke:GStroke = layer.extract(Layer(items, p, s, o, r, fi, st) => st);
-			final layerStrokeColor:Color = layerStroke.extract(Stroke(color, width) => color);
+			final layerStrokeColor:GColor = layerStroke.extract(Stroke(color, width) => color);
 			final layerStrokeWidth:Float = layerStroke.extract(Stroke(color, width) => width);
 
 			if (layerFillColor != null)
