@@ -2,33 +2,45 @@ package graphics;
 
 import haxe.ds.Map;
 
+using Std;
+using Math;
+using SimpleGraphics.GTools;
+using tools.EnumTools;
+using tools.ArrayItems;
+
 enum GItem {
-	Line(x:Float, y:Float, s:GStroke);
+	Line(x1:Float, y1:Float, x2:Float, y2:Float, s:GStroke);
 	Rect(x:Float, y:Float, w:Float, h:Float, fill:GFill, stroke:GStroke);
 	Ellipse(x:Float, y:Float, w:Float, h:Float, fill:GFill, stroke:GStroke);
 	Path(p:GPath, fill:GFill, stroke:GStroke);
-	Text(s:String, font:String, size:String, bold:Bool, italic:Bool);
+	Text(x:Float, y:Float, s:String, font:String, size:String, bold:Bool, italic:Bool);
 }
 
 typedef GItems = Array<GItem>;
 
 enum GFill {
 	None;
-	Color(c:Color);
+	Solid(c:Color);
 	// Gradient( ... );
 }
 
 enum GStroke {
 	None;
-	Line(c:Color, width:Float);
+	Stroke(c:Color, width:Float);
 }
 
 enum Color {
 	RGBA(r:Int, g:Int, b:Int, a:Int);
+	Red;
+	Blue;
+	Green;
+	Yellow;
+	Purple;
+	Gray;
 }
 
 enum GLayer {
-	Layer(placement:GPoint, size:GPoint, opacity:GValue, rotation:GValue);
+	Layer(items:GItems, placement:GPoint, size:GPoint, opacity:GValue, rotation:GValue, defaultFill:GFill, defaultStroke:GStroke);
 }
 
 enum GValue {
@@ -51,9 +63,282 @@ enum GPathElement {
 typedef GPath = Array<GPathElement>;
 
 interface GSurface<T> {
-	function addLayer(l:GLayer):Void;
-	function addItem(i:GItem):Void;
+	function addLayer(layer:GLayer):Void;
+	function addItem(item:GItem):Void;
 	function render():T;
 }
 
+class GTools {
+	static public function getBoundingBox(items:GItems, ?defaultStroke:GStroke):GRect {
+		var halfStrokeWidth = switch defaultStroke {
+			case null: 0;
+			case Stroke(c, w): w / 2;
+			default: 0;
+		}
 
+		var minX:Float = null;
+		var minY:Float = null;
+		var maxX:Float = null;
+		var maxY:Float = null;
+
+		for (item in items) {
+			var ix:Float = null;
+			var iy:Float = null;
+			var ix2:Float = null;
+			var iy2:Float = null;
+			switch item {
+				case Line(x1, y1, x2, y2, s):
+					halfStrokeWidth = switch s {
+						case null: halfStrokeWidth;
+						case Stroke(c, w): w / 2;
+						default: halfStrokeWidth;
+					}
+
+					ix = x1.min(x2) - halfStrokeWidth;
+					iy = y1.min(y2) - halfStrokeWidth;
+					ix2 = x1.max(x2) + halfStrokeWidth * 2;
+					iy2 = y1.max(y2) + halfStrokeWidth * 2;
+
+				case Rect(x, y, w, h, f, s) | Ellipse(x, y, w, h, f, s):
+					halfStrokeWidth = switch s {
+						case null: halfStrokeWidth;
+						case Stroke(c, w): w / 2;
+						default: halfStrokeWidth;
+					}
+
+					ix = x.min(x + w) - halfStrokeWidth;
+					iy = y.min(x + h) - halfStrokeWidth;
+					ix2 = x.max(x + w) + halfStrokeWidth * 2;
+					iy2 = y.max(y + h) + halfStrokeWidth * 2;
+
+				case Path(path, f, s):
+					for (pitem in path) {
+						switch pitem {
+							case M(x, y) | L(x, y):
+								ix = x;
+								iy = y;
+								ix2 = x;
+								iy2 = y;
+							case C(x1, y1, x2, y2, x, y):
+								ix = x1.min(x2.min(x));
+								iy = y1.min(y2.min(y));
+								ix2 = x1.max(x2.max(x));
+								iy2 = y1.max(y2.max(y));
+							case Z:
+						}
+					}
+
+				case Text(x, y, s, f, size, b, i):
+					ix = x;
+					iy = y; // - fontHeight...
+					ix2 = x; // + stringWidth...
+					iy2 = y; // + bewlow baseline height...
+			}
+
+			if (ix != null)
+				minX = minX != null ? minX.min(ix) : ix;
+			if (iy != null)
+				minY = minY != null ? minY.min(iy) : iy;
+			if (ix2 != null)
+				maxX = maxX != null ? maxX.max(ix2) : ix2;
+			if (iy2 != null)
+				maxY = maxY != null ? maxY.max(iy2) : iy2;
+		}
+		return {
+			x: minX,
+			y: minY,
+			w: maxX,
+			h: maxY,
+		};
+	}
+
+	static public function getBoundingRect(rects:Array<GRect>):GRect {
+		var ret:GRect = rects.first();
+		if (rects.length > 1)
+			for (rect in rects) {
+				ret = {
+					x: ret.x.min(rect.x),
+					y: ret.y.min(rect.y),
+					w: ret.w.max(rect.w),
+					h: ret.h.max(rect.h)
+				};
+			}
+		return ret;
+	}
+
+	static public function moveItems(items:GItems, mx:Float, my:Float):GItems {
+		final newItems = items.map(item -> {
+			return switch item {
+				case Line(x1, y1, x2, y2, s): GItem.Line(x1 + mx, y1 + mx, x2 + mx, y2 + my, s);
+				case Rect(x, y, w, h, f, s): GItem.Rect(x + mx, y + mx, w, h, f, s);
+				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x + mx, y + mx, w, h, f, s);
+				case Path(path, f, s):
+					// Path([], f, s);
+					final newPath:GPath = path.map(pitem -> {
+						switch pitem {
+							case M(x, y):
+								M(x + mx, y + my);
+							case L(x, y):
+								L(x + mx, y + my);
+							case C(x1, y1, x2, y2, x, y):
+								C(x1 + mx, y1 + mx, x2 + mx, y2 + my, x + mx, y + my);
+							case Z: Z;
+						}
+					});
+					return GItem.Path(newPath, f, s);
+				case Text(x, y, s, f, size, b, i):
+					GItem.Text(x + mx, y + my, s, f, size, b, i);
+			}
+		});
+		return newItems;
+	}
+
+	static public function getColor(c:Color):String {
+		return switch c {
+			default: c.getName().toLowerCase();
+		}
+	}
+}
+
+typedef GRect = {x:Float, y:Float, w:Float, h:Float}
+
+class SvgSurface implements GSurface<String> {
+	var svg:Xml;
+	final layers:Array<GLayer> = [];
+	var layerItems:GItems;
+
+	public function new(?firstLayer:GLayer) {
+		if (firstLayer != null) {
+			this.layerItems = firstLayer.extract(Layer(items, p, s, o, r, fill, st) => items);
+			this.layers = [firstLayer];
+		} else {
+			this.layerItems = [];
+			this.layers = [
+				Layer(layerItems, null, null, null, null, GFill.Solid(Color.Blue), GStroke.Stroke(Color.Red, 5))
+			];
+		}
+	}
+
+	public function addLayer(layer:GLayer) {
+		this.layers.push(layer);
+		this.layerItems = layer.extract(Layer(items, p, s, o, r, fi, st) => items);
+	}
+
+	public function addItem(item:GItem) {
+		this.layerItems.push(item);
+	}
+
+	public function render():String {
+		final boundingRects:Array<GRect> = this.layers.map(layer -> {
+			var layerStroke:GStroke = null;
+			final items:GItems = switch layer {
+				case Layer(items, p, s, o, r, fill, st):
+					layerStroke = st;
+					items;
+			}
+			return items.getBoundingBox(layerStroke);
+		});
+		final boundingRect:GRect = GTools.getBoundingRect(boundingRects);
+		this.svg = Xml.parse('<svg width="${boundingRect.w - boundingRect.x}" height="${boundingRect.h - boundingRect.y}"></svg>').firstElement();
+		for (layer in layers) {
+			final eLayer = Xml.createElement('g');
+			this.svg.addChild(eLayer);
+			final items = layer.extract(Layer(items, p, s, o, r, fi, st) => items);
+			final layerFill:GFill = layer.extract(Layer(items, p, s, o, r, fi, st) => fi);
+			final layerFillColor:Color = switch layerFill {
+				case null: null;
+				case Solid(c): c;
+				default: null;
+			}
+
+			final layerStroke:GStroke = layer.extract(Layer(items, p, s, o, r, fi, st) => st);
+			final layerStrokeColor:Color = layerStroke.extract(Stroke(color, width) => color);
+			final layerStrokeWidth:Float = layerStroke.extract(Stroke(color, width) => width);
+
+			if (layerFillColor != null)
+				eLayer.set('fill', layerFillColor.getColor());
+			if (layerStrokeColor != null)
+				eLayer.set('stroke', layerStrokeColor.getColor());
+			if (layerStrokeWidth != null)
+				eLayer.set('stroke-width', layerStrokeWidth.string());
+
+			final movedItems = items.moveItems(-boundingRect.x, -boundingRect.y);
+
+			for (item in movedItems) {
+				switch item {
+					case Line(x1, y1, x2, y2, s):
+						final line = Xml.createElement('line');
+						line.set('x1', x1.string());
+						line.set('y1', y1.string());
+						line.set('x2', x2.string());
+						line.set('y2', y2.string());
+						//
+						var style = '';
+						switch s {
+							case null:
+							case Stroke(c, w): style += 'stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case None: style += ' stroke:none; ';
+							default:
+						}
+						if (style != '')
+							line.set('style', style);
+
+						eLayer.addChild(line);
+
+					case Rect(x, y, w, h, f, s):
+						final rect = Xml.createElement('rect');
+						rect.set('x', x.string());
+						rect.set('y', y.string());
+						rect.set('width', w.string());
+						rect.set('height', h.string());
+						//
+						var style = '';
+						switch s {
+							case null:
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case None: style += ' stroke:none; ';
+							default:
+						}
+						switch f {
+							case null:
+							case Solid(c): style += ' fill: ${c.getColor()};';
+							case None: style += ' fill:none; ';
+							default:
+						}
+
+						if (style != '')
+							rect.set('style', style);
+
+						eLayer.addChild(rect);
+					case Ellipse(x, y, w, h, f, s):
+						final item = Xml.createElement('ellipse');
+						item.set('cx', (x + w / 2).string());
+						item.set('cy', (y + h / 2).string());
+						item.set('rx', (w / 2).string());
+						item.set('ry', (h / 2).string());
+						//
+						var style = '';
+						switch s {
+							case null:
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case None: style += ' stroke:none; ';
+							default:
+						}
+						switch f {
+							case null:
+							case Solid(c): style += ' fill: ${c.getColor()};';
+							case None: style += ' fill:none; ';
+							default:
+						}
+
+						if (style != '')
+							item.set('style', style);
+
+						eLayer.addChild(item);
+					default:
+				}
+			}
+		}
+		return this.svg.toString();
+	}
+}

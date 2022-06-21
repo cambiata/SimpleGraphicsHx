@@ -1,15 +1,13 @@
 
+-D analyzer-optimize
+
 -p test
 -p src 
 -m TestSimpleGraphics
 -L utest
 
---each
+--interp
 
--js public/index.js
-
+# -js public/index.js
 # --cmd node test.js
-
-# --next
-# --interp
 
