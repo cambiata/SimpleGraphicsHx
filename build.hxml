@@ -1,0 +1,15 @@
+
+-p test
+-p src 
+-m TestSimpleGraphics
+-L utest
+
+--each
+
+-js public/index.js
+
+# --cmd node test.js
+
+# --next
+# --interp
+
