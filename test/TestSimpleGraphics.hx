@@ -33,9 +33,9 @@ class TestA implements utest.ITest {
 
 	function testLayer() {
 		final svg:SvgSurface = new SvgSurface();
-		svg.addItem(Rect(0, 0, 100, 100, null, null));
-		svg.addItem(Ellipse(0, 0, 100, 100, Solid(Yellow), None));
-		svg.addItem(Line(0, 0, 100, 100, null));
+		svg.addItem(Rect(0, 0, 200, 100, null, null));
+		svg.addItem(Ellipse(50, 0, 100, 100, Solid(Yellow), None));
+		svg.addItem(Line(0, 0, 200, 100, Stroke(Purple, 5)));
 		final svgString = svg.render();
 		#if sys
 		sys.io.File.saveContent('test.svg', svgString);
