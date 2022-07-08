@@ -59,19 +59,13 @@ Lambda.__name__ = "Lambda";
 Lambda.array = function(it) {
 	var a = [];
 	var i = $getIterator(it);
-	while(i.hasNext()) {
-		var i1 = i.next();
-		a.push(i1);
-	}
+	while(i.hasNext()) a.push(i.next());
 	return a;
 };
 Lambda.has = function(it,elt) {
 	var x = $getIterator(it);
-	while(x.hasNext()) {
-		var x1 = x.next();
-		if(x1 == elt) {
-			return true;
-		}
+	while(x.hasNext()) if(x.next() == elt) {
+		return true;
 	}
 	return false;
 };
@@ -290,20 +284,52 @@ var TestA = function() {
 TestA.__name__ = "TestA";
 TestA.__interfaces__ = [utest_ITest];
 TestA.prototype = {
-	testA: function() {
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 9, className : "TestA", methodName : "testA"});
+	test1: function() {
+	}
+	,testLayer: function() {
+		var items = [graphics_GItem.Ellipse(-50,-50,100,100,graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.None),graphics_GItem.Line(0,0,100,-100,graphics_GStroke.Stroke(graphics_GColor.Purple,5)),graphics_GItem.Rect(-100,-100,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Rect(0,0,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10))];
+		var sSurface = new graphics_SvgSurface();
+		sSurface.addItems(items);
+		var svg = sSurface.render();
+		var cSurface = new graphics_CanvasSurface();
+		cSurface.addItems(items);
+		this.outputJs(svg,cSurface.render());
+	}
+	,outputJs: function(svgXml,canvas) {
+		var outputEl = window.document.getElementById("output");
+		haxe_Log.trace(outputEl,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 67, className : "TestA", methodName : "outputJs"});
+		var row = window.document.createElement("div");
+		row.classList.add("row");
+		row.appendChild(canvas);
+		var svgDiv = window.document.createElement("div");
+		svgDiv.innerHTML = haxe_xml_Printer.print(svgXml);
+		row.appendChild(svgDiv);
+		outputEl.appendChild(row);
 	}
 	,__initializeUtest__: function() {
 		var _gthis = this;
 		var init = { tests : [], dependencies : [], accessories : { }};
-		init.tests.push({ name : "testA", dependencies : [], execute : function() {
-			_gthis.testA();
+		init.tests.push({ name : "testLayer", dependencies : [], execute : function() {
+			_gthis.testLayer();
+			return utest_Async.getResolved();
+		}});
+		init.tests.push({ name : "test1", dependencies : [], execute : function() {
+			_gthis.test1();
 			return utest_Async.getResolved();
 		}});
 		return init;
 	}
 	,__class__: TestA
 };
+function TestSimpleGraphics_testPair() {
+	var _g = tools_PairIterator.toPairIterator([{ x : 3},{ x : 8},{ x : 11}],{ x : 20}).keyValueIterator();
+	while(_g.hasNext()) {
+		var _g1 = _g.next();
+		var left = _g1.key;
+		var right = _g1.value;
+		haxe_Log.trace("left: " + Std.string(left) + ", right: " + Std.string(right) + ", x-difference: " + (right.x - left.x),{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 16, className : "_TestSimpleGraphics.TestSimpleGraphics_Fields_", methodName : "testPair"});
+	}
+}
 function TestSimpleGraphics_main() {
 	utest_UTest.run([new TestA()]);
 }
@@ -385,6 +411,701 @@ Type.enumParameters = function(e) {
 		return [];
 	}
 };
+var XmlType = {};
+XmlType.toString = function(this1) {
+	switch(this1) {
+	case 0:
+		return "Element";
+	case 1:
+		return "PCData";
+	case 2:
+		return "CData";
+	case 3:
+		return "Comment";
+	case 4:
+		return "DocType";
+	case 5:
+		return "ProcessingInstruction";
+	case 6:
+		return "Document";
+	}
+};
+var Xml = function(nodeType) {
+	this.nodeType = nodeType;
+	this.children = [];
+	this.attributeMap = new haxe_ds_StringMap();
+};
+Xml.__name__ = "Xml";
+Xml.parse = function(str) {
+	return haxe_xml_Parser.parse(str);
+};
+Xml.createElement = function(name) {
+	var xml = new Xml(Xml.Element);
+	if(xml.nodeType != Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, expected Element but found " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeName = name;
+	return xml;
+};
+Xml.createPCData = function(data) {
+	var xml = new Xml(Xml.PCData);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createCData = function(data) {
+	var xml = new Xml(Xml.CData);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createComment = function(data) {
+	var xml = new Xml(Xml.Comment);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createDocType = function(data) {
+	var xml = new Xml(Xml.DocType);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createProcessingInstruction = function(data) {
+	var xml = new Xml(Xml.ProcessingInstruction);
+	if(xml.nodeType == Xml.Document || xml.nodeType == Xml.Element) {
+		throw haxe_Exception.thrown("Bad node type, unexpected " + (xml.nodeType == null ? "null" : XmlType.toString(xml.nodeType)));
+	}
+	xml.nodeValue = data;
+	return xml;
+};
+Xml.createDocument = function() {
+	return new Xml(Xml.Document);
+};
+Xml.prototype = {
+	nodeType: null
+	,nodeName: null
+	,nodeValue: null
+	,parent: null
+	,children: null
+	,attributeMap: null
+	,get: function(att) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return this.attributeMap.h[att];
+	}
+	,set: function(att,value) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		this.attributeMap.h[att] = value;
+	}
+	,exists: function(att) {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return Object.prototype.hasOwnProperty.call(this.attributeMap.h,att);
+	}
+	,attributes: function() {
+		if(this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		return new haxe_ds__$StringMap_StringMapKeyIterator(this.attributeMap.h);
+	}
+	,firstElement: function() {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		var _g = 0;
+		var _g1 = this.children;
+		while(_g < _g1.length) {
+			var child = _g1[_g];
+			++_g;
+			if(child.nodeType == Xml.Element) {
+				return child;
+			}
+		}
+		return null;
+	}
+	,addChild: function(x) {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		if(x.parent != null) {
+			x.parent.removeChild(x);
+		}
+		this.children.push(x);
+		x.parent = this;
+	}
+	,removeChild: function(x) {
+		if(this.nodeType != Xml.Document && this.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (this.nodeType == null ? "null" : XmlType.toString(this.nodeType)));
+		}
+		if(HxOverrides.remove(this.children,x)) {
+			x.parent = null;
+			return true;
+		}
+		return false;
+	}
+	,toString: function() {
+		return haxe_xml_Printer.print(this);
+	}
+	,__class__: Xml
+};
+var graphics_GItem = $hxEnums["graphics.GItem"] = { __ename__:"graphics.GItem",__constructs__:null
+	,Line: ($_=function(x1,y1,x2,y2,s) { return {_hx_index:0,x1:x1,y1:y1,x2:x2,y2:y2,s:s,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Line",$_.__params__ = ["x1","y1","x2","y2","s"],$_)
+	,Rect: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:1,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Rect",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
+	,Ellipse: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:2,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Ellipse",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
+	,Path: ($_=function(p,fill,stroke) { return {_hx_index:3,p:p,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Path",$_.__params__ = ["p","fill","stroke"],$_)
+	,Text: ($_=function(x,y,s,font,size,bold,italic) { return {_hx_index:4,x:x,y:y,s:s,font:font,size:size,bold:bold,italic:italic,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Text",$_.__params__ = ["x","y","s","font","size","bold","italic"],$_)
+};
+graphics_GItem.__constructs__ = [graphics_GItem.Line,graphics_GItem.Rect,graphics_GItem.Ellipse,graphics_GItem.Path,graphics_GItem.Text];
+var graphics_GFill = $hxEnums["graphics.GFill"] = { __ename__:"graphics.GFill",__constructs__:null
+	,None: {_hx_name:"None",_hx_index:0,__enum__:"graphics.GFill",toString:$estr}
+	,Solid: ($_=function(c) { return {_hx_index:1,c:c,__enum__:"graphics.GFill",toString:$estr}; },$_._hx_name="Solid",$_.__params__ = ["c"],$_)
+};
+graphics_GFill.__constructs__ = [graphics_GFill.None,graphics_GFill.Solid];
+var graphics_GStroke = $hxEnums["graphics.GStroke"] = { __ename__:"graphics.GStroke",__constructs__:null
+	,None: {_hx_name:"None",_hx_index:0,__enum__:"graphics.GStroke",toString:$estr}
+	,Stroke: ($_=function(c,width) { return {_hx_index:1,c:c,width:width,__enum__:"graphics.GStroke",toString:$estr}; },$_._hx_name="Stroke",$_.__params__ = ["c","width"],$_)
+};
+graphics_GStroke.__constructs__ = [graphics_GStroke.None,graphics_GStroke.Stroke];
+var graphics_GColor = $hxEnums["graphics.GColor"] = { __ename__:"graphics.GColor",__constructs__:null
+	,RGBA: ($_=function(r,g,b,a) { return {_hx_index:0,r:r,g:g,b:b,a:a,__enum__:"graphics.GColor",toString:$estr}; },$_._hx_name="RGBA",$_.__params__ = ["r","g","b","a"],$_)
+	,Red: {_hx_name:"Red",_hx_index:1,__enum__:"graphics.GColor",toString:$estr}
+	,Blue: {_hx_name:"Blue",_hx_index:2,__enum__:"graphics.GColor",toString:$estr}
+	,Green: {_hx_name:"Green",_hx_index:3,__enum__:"graphics.GColor",toString:$estr}
+	,Yellow: {_hx_name:"Yellow",_hx_index:4,__enum__:"graphics.GColor",toString:$estr}
+	,Purple: {_hx_name:"Purple",_hx_index:5,__enum__:"graphics.GColor",toString:$estr}
+	,Gray: {_hx_name:"Gray",_hx_index:6,__enum__:"graphics.GColor",toString:$estr}
+};
+graphics_GColor.__constructs__ = [graphics_GColor.RGBA,graphics_GColor.Red,graphics_GColor.Blue,graphics_GColor.Green,graphics_GColor.Yellow,graphics_GColor.Purple,graphics_GColor.Gray];
+var graphics_GLayer = $hxEnums["graphics.GLayer"] = { __ename__:"graphics.GLayer",__constructs__:null
+	,Layer: ($_=function(items,placement,size,opacity,rotation) { return {_hx_index:0,items:items,placement:placement,size:size,opacity:opacity,rotation:rotation,__enum__:"graphics.GLayer",toString:$estr}; },$_._hx_name="Layer",$_.__params__ = ["items","placement","size","opacity","rotation"],$_)
+};
+graphics_GLayer.__constructs__ = [graphics_GLayer.Layer];
+var graphics_GValue = $hxEnums["graphics.GValue"] = { __ename__:"graphics.GValue",__constructs__:null
+	,SValue: ($_=function(v) { return {_hx_index:0,v:v,__enum__:"graphics.GValue",toString:$estr}; },$_._hx_name="SValue",$_.__params__ = ["v"],$_)
+	,AValue: ($_=function(v) { return {_hx_index:1,v:v,__enum__:"graphics.GValue",toString:$estr}; },$_._hx_name="AValue",$_.__params__ = ["v"],$_)
+};
+graphics_GValue.__constructs__ = [graphics_GValue.SValue,graphics_GValue.AValue];
+var graphics_GPoint = $hxEnums["graphics.GPoint"] = { __ename__:"graphics.GPoint",__constructs__:null
+	,SPoint: ($_=function(x,y) { return {_hx_index:0,x:x,y:y,__enum__:"graphics.GPoint",toString:$estr}; },$_._hx_name="SPoint",$_.__params__ = ["x","y"],$_)
+	,APoint: ($_=function(v) { return {_hx_index:1,v:v,__enum__:"graphics.GPoint",toString:$estr}; },$_._hx_name="APoint",$_.__params__ = ["v"],$_)
+};
+graphics_GPoint.__constructs__ = [graphics_GPoint.SPoint,graphics_GPoint.APoint];
+var graphics_GPathElement = $hxEnums["graphics.GPathElement"] = { __ename__:"graphics.GPathElement",__constructs__:null
+	,M: ($_=function(x,y) { return {_hx_index:0,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="M",$_.__params__ = ["x","y"],$_)
+	,L: ($_=function(x,y) { return {_hx_index:1,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="L",$_.__params__ = ["x","y"],$_)
+	,C: ($_=function(x1,y1,x2,y2,x,y) { return {_hx_index:2,x1:x1,y1:y1,x2:x2,y2:y2,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="C",$_.__params__ = ["x1","y1","x2","y2","x","y"],$_)
+	,Z: {_hx_name:"Z",_hx_index:3,__enum__:"graphics.GPathElement",toString:$estr}
+};
+graphics_GPathElement.__constructs__ = [graphics_GPathElement.M,graphics_GPathElement.L,graphics_GPathElement.C,graphics_GPathElement.Z];
+var graphics_GSurface = function() { };
+graphics_GSurface.__name__ = "graphics.GSurface";
+graphics_GSurface.__isInterface__ = true;
+graphics_GSurface.prototype = {
+	addLayer: null
+	,addItem: null
+	,__class__: graphics_GSurface
+};
+var graphics_GSurfaceRenderer = function() { };
+graphics_GSurfaceRenderer.__name__ = "graphics.GSurfaceRenderer";
+graphics_GSurfaceRenderer.__isInterface__ = true;
+graphics_GSurfaceRenderer.__interfaces__ = [graphics_GSurface];
+graphics_GSurfaceRenderer.prototype = {
+	render: null
+	,__class__: graphics_GSurfaceRenderer
+};
+var graphics_GTools = function() { };
+graphics_GTools.__name__ = "graphics.GTools";
+graphics_GTools.getBoundingBox = function(items) {
+	var minX = null;
+	var minY = null;
+	var maxX = null;
+	var maxY = null;
+	var halfStrokeWidth = .0;
+	var _g = 0;
+	while(_g < items.length) {
+		var item = items[_g];
+		++_g;
+		var ix = null;
+		var iy = null;
+		var ix2 = null;
+		var iy2 = null;
+		switch(item._hx_index) {
+		case 0:
+			var _g1 = item.x1;
+			var _g2 = item.y1;
+			var _g3 = item.x2;
+			var _g4 = item.y2;
+			var _g5 = item.s;
+			if(_g5 != null) {
+				if(_g5._hx_index == 1) {
+					halfStrokeWidth = _g5.width / 2;
+				}
+			}
+			ix = Math.min(_g1,_g3) - halfStrokeWidth;
+			iy = Math.min(_g2,_g4) - halfStrokeWidth;
+			ix2 = Math.max(_g1,_g3) + halfStrokeWidth * 2;
+			iy2 = Math.max(_g2,_g4) + halfStrokeWidth * 2;
+			break;
+		case 1:
+			var _g6 = item.x;
+			var _g7 = item.y;
+			var _g8 = item.w;
+			var _g9 = item.h;
+			var _g10 = item.stroke;
+			if(_g10 != null) {
+				if(_g10._hx_index == 1) {
+					halfStrokeWidth = _g10.width / 2;
+				}
+			}
+			ix = Math.min(_g6,_g6 + _g8) - halfStrokeWidth;
+			iy = Math.min(_g7,_g6 + _g9) - halfStrokeWidth;
+			ix2 = Math.max(_g6,_g6 + _g8) + halfStrokeWidth * 2;
+			iy2 = Math.max(_g7,_g7 + _g9) + halfStrokeWidth * 2;
+			break;
+		case 2:
+			var _g11 = item.x;
+			var _g12 = item.y;
+			var _g13 = item.w;
+			var _g14 = item.h;
+			var _g15 = item.stroke;
+			if(_g15 != null) {
+				if(_g15._hx_index == 1) {
+					halfStrokeWidth = _g15.width / 2;
+				}
+			}
+			ix = Math.min(_g11,_g11 + _g13) - halfStrokeWidth;
+			iy = Math.min(_g12,_g11 + _g14) - halfStrokeWidth;
+			ix2 = Math.max(_g11,_g11 + _g13) + halfStrokeWidth * 2;
+			iy2 = Math.max(_g12,_g12 + _g14) + halfStrokeWidth * 2;
+			break;
+		case 3:
+			var _g16 = item.p;
+			var _g17 = 0;
+			while(_g17 < _g16.length) {
+				var pitem = _g16[_g17];
+				++_g17;
+				switch(pitem._hx_index) {
+				case 0:
+					var _g18 = pitem.x;
+					var _g19 = pitem.y;
+					ix = _g18;
+					iy = _g19;
+					ix2 = _g18;
+					iy2 = _g19;
+					break;
+				case 1:
+					var _g20 = pitem.x;
+					var _g21 = pitem.y;
+					ix = _g20;
+					iy = _g21;
+					ix2 = _g20;
+					iy2 = _g21;
+					break;
+				case 2:
+					var _g22 = pitem.x1;
+					var _g23 = pitem.y1;
+					var _g24 = pitem.x2;
+					var _g25 = pitem.y2;
+					var _g26 = pitem.x;
+					var _g27 = pitem.y;
+					ix = Math.min(_g22,Math.min(_g24,_g26));
+					iy = Math.min(_g23,Math.min(_g25,_g27));
+					ix2 = Math.max(_g22,Math.max(_g24,_g26));
+					iy2 = Math.max(_g23,Math.max(_g25,_g27));
+					break;
+				case 3:
+					break;
+				}
+			}
+			break;
+		case 4:
+			var _g28 = item.x;
+			var _g29 = item.y;
+			ix = _g28;
+			iy = _g29;
+			ix2 = _g28;
+			iy2 = _g29;
+			break;
+		}
+		if(ix != null) {
+			minX = minX != null ? Math.min(minX,ix) : ix;
+		}
+		if(iy != null) {
+			minY = minY != null ? Math.min(minY,iy) : iy;
+		}
+		if(ix2 != null) {
+			maxX = maxX != null ? Math.max(maxX,ix2) : ix2;
+		}
+		if(iy2 != null) {
+			maxY = maxY != null ? Math.max(maxY,iy2) : iy2;
+		}
+	}
+	return { x : minX, y : minY, w : maxX, h : maxY};
+};
+graphics_GTools.getBoundingRect = function(rects) {
+	var ret = rects[0];
+	if(rects.length > 1) {
+		var _g = 0;
+		while(_g < rects.length) {
+			var rect = rects[_g];
+			++_g;
+			ret = { x : Math.min(ret.x,rect.x), y : Math.min(ret.y,rect.y), w : Math.max(ret.w,rect.w), h : Math.max(ret.h,rect.h)};
+		}
+	}
+	return ret;
+};
+graphics_GTools.getBoundingSize = function(rect) {
+	return { w : rect.w - rect.x, h : rect.h - rect.y};
+};
+graphics_GTools.moveItems = function(items,mx,my) {
+	var result = new Array(items.length);
+	var _g = 0;
+	var _g1 = items.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var item = items[i];
+		var tmp;
+		switch(item._hx_index) {
+		case 0:
+			tmp = graphics_GItem.Line(item.x1 + mx,item.y1 + mx,item.x2 + mx,item.y2 + my,item.s);
+			break;
+		case 1:
+			tmp = graphics_GItem.Rect(item.x + mx,item.y + mx,item.w,item.h,item.fill,item.stroke);
+			break;
+		case 2:
+			tmp = graphics_GItem.Ellipse(item.x + mx,item.y + mx,item.w,item.h,item.fill,item.stroke);
+			break;
+		case 3:
+			var _g2 = item.p;
+			var _g3 = item.fill;
+			var _g4 = item.stroke;
+			var result1 = new Array(_g2.length);
+			var _g5 = 0;
+			var _g11 = _g2.length;
+			while(_g5 < _g11) {
+				var i1 = _g5++;
+				var pitem = _g2[i1];
+				var tmp1;
+				switch(pitem._hx_index) {
+				case 0:
+					tmp1 = graphics_GPathElement.M(pitem.x + mx,pitem.y + my);
+					break;
+				case 1:
+					tmp1 = graphics_GPathElement.L(pitem.x + mx,pitem.y + my);
+					break;
+				case 2:
+					tmp1 = graphics_GPathElement.C(pitem.x1 + mx,pitem.y1 + mx,pitem.x2 + mx,pitem.y2 + my,pitem.x + mx,pitem.y + my);
+					break;
+				case 3:
+					tmp1 = graphics_GPathElement.Z;
+					break;
+				}
+				result1[i1] = tmp1;
+			}
+			tmp = graphics_GItem.Path(result1,_g3,_g4);
+			break;
+		case 4:
+			tmp = graphics_GItem.Text(item.x + mx,item.y + my,item.s,item.font,item.size,item.bold,item.italic);
+			break;
+		}
+		result[i] = tmp;
+	}
+	return result;
+};
+graphics_GTools.getColor = function(c) {
+	return $hxEnums[c.__enum__].__constructs__[c._hx_index]._hx_name.toLowerCase();
+};
+var graphics_BaseSurface = function() {
+	this.layers = [];
+	this.layerItems = [];
+	this.layers = [graphics_GLayer.Layer(this.layerItems,null,null,null,null)];
+};
+graphics_BaseSurface.__name__ = "graphics.BaseSurface";
+graphics_BaseSurface.prototype = {
+	layers: null
+	,layerItems: null
+	,addLayer: function(layer) {
+		this.layers.push(layer);
+		this.layerItems = layer.items;
+	}
+	,addItem: function(item) {
+		this.layerItems.push(item);
+	}
+	,addItems: function(items) {
+		var _g = 0;
+		while(_g < items.length) this.layerItems.push(items[_g++]);
+	}
+	,__class__: graphics_BaseSurface
+};
+var graphics_SvgSurface = function() {
+	graphics_BaseSurface.call(this);
+};
+graphics_SvgSurface.__name__ = "graphics.SvgSurface";
+graphics_SvgSurface.__interfaces__ = [graphics_GSurfaceRenderer];
+graphics_SvgSurface.__super__ = graphics_BaseSurface;
+graphics_SvgSurface.prototype = $extend(graphics_BaseSurface.prototype,{
+	svg: null
+	,render: function() {
+		var _this = this.layers;
+		var result = new Array(_this.length);
+		var _g = 0;
+		var _g1 = _this.length;
+		while(_g < _g1) {
+			var i = _g++;
+			result[i] = graphics_GTools.getBoundingBox(_this[i].items);
+		}
+		var boundingRect = graphics_GTools.getBoundingRect(result);
+		var boundingSize = graphics_GTools.getBoundingSize(boundingRect);
+		this.svg = Xml.parse("<svg width=\"" + boundingSize.w + "\" height=\"" + boundingSize.h + "\"></svg>").firstElement();
+		var _g = 0;
+		var _g1 = this.layers;
+		while(_g < _g1.length) {
+			var layer = _g1[_g++];
+			var eLayer = Xml.createElement("g");
+			this.svg.addChild(eLayer);
+			var movedItems = graphics_GTools.moveItems(layer.items,-boundingRect.x,-boundingRect.y);
+			var _g2 = 0;
+			while(_g2 < movedItems.length) {
+				var item = movedItems[_g2];
+				++_g2;
+				switch(item._hx_index) {
+				case 0:
+					var _g3 = item.x1;
+					var _g4 = item.y1;
+					var _g5 = item.x2;
+					var _g6 = item.y2;
+					var _g7 = item.s;
+					var line = Xml.createElement("line");
+					line.set("x1",_g3 == null ? "null" : "" + _g3);
+					line.set("y1",_g4 == null ? "null" : "" + _g4);
+					line.set("x2",_g5 == null ? "null" : "" + _g5);
+					line.set("y2",_g6 == null ? "null" : "" + _g6);
+					var style = "";
+					if(_g7 != null) {
+						switch(_g7._hx_index) {
+						case 0:
+							style = " stroke:none; ";
+							break;
+						case 1:
+							var _g8 = _g7.width;
+							style = "" + ("stroke: " + graphics_GTools.getColor(_g7.c) + "; stroke-width: " + (_g8 == null ? "null" : "" + _g8) + ";");
+							break;
+						}
+					}
+					if(style != "") {
+						line.set("style",style);
+					}
+					eLayer.addChild(line);
+					break;
+				case 1:
+					var _g9 = item.x;
+					var _g10 = item.y;
+					var _g11 = item.w;
+					var _g12 = item.h;
+					var _g13 = item.fill;
+					var _g14 = item.stroke;
+					var rect = Xml.createElement("rect");
+					rect.set("x",_g9 == null ? "null" : "" + _g9);
+					rect.set("y",_g10 == null ? "null" : "" + _g10);
+					rect.set("width",_g11 == null ? "null" : "" + _g11);
+					rect.set("height",_g12 == null ? "null" : "" + _g12);
+					var style1 = "";
+					if(_g14 != null) {
+						switch(_g14._hx_index) {
+						case 0:
+							style1 = " stroke:none; ";
+							break;
+						case 1:
+							var _g15 = _g14.width;
+							style1 = "" + (" stroke: " + graphics_GTools.getColor(_g14.c) + "; stroke-width: " + (_g15 == null ? "null" : "" + _g15) + ";");
+							break;
+						}
+					}
+					if(_g13 != null) {
+						switch(_g13._hx_index) {
+						case 0:
+							style1 += " fill:none; ";
+							break;
+						case 1:
+							style1 += " fill: " + graphics_GTools.getColor(_g13.c) + ";";
+							break;
+						}
+					}
+					if(style1 != "") {
+						rect.set("style",style1);
+					}
+					eLayer.addChild(rect);
+					break;
+				case 2:
+					var _g16 = item.w;
+					var _g17 = item.h;
+					var _g18 = item.fill;
+					var _g19 = item.stroke;
+					var item1 = Xml.createElement("ellipse");
+					item1.set("cx",Std.string(item.x + _g16 / 2));
+					item1.set("cy",Std.string(item.y + _g17 / 2));
+					item1.set("rx",Std.string(_g16 / 2));
+					item1.set("ry",Std.string(_g17 / 2));
+					var style2 = "";
+					if(_g19 != null) {
+						switch(_g19._hx_index) {
+						case 0:
+							style2 = " stroke:none; ";
+							break;
+						case 1:
+							var _g20 = _g19.width;
+							style2 = "" + (" stroke: " + graphics_GTools.getColor(_g19.c) + "; stroke-width: " + (_g20 == null ? "null" : "" + _g20) + ";");
+							break;
+						}
+					}
+					if(_g18 != null) {
+						switch(_g18._hx_index) {
+						case 0:
+							style2 += " fill:none; ";
+							break;
+						case 1:
+							style2 += " fill: " + graphics_GTools.getColor(_g18.c) + ";";
+							break;
+						}
+					}
+					if(style2 != "") {
+						item1.set("style",style2);
+					}
+					eLayer.addChild(item1);
+					break;
+				default:
+				}
+			}
+		}
+		return this.svg;
+	}
+	,__class__: graphics_SvgSurface
+});
+var graphics_CanvasSurface = function() {
+	graphics_BaseSurface.call(this);
+};
+graphics_CanvasSurface.__name__ = "graphics.CanvasSurface";
+graphics_CanvasSurface.__interfaces__ = [graphics_GSurfaceRenderer];
+graphics_CanvasSurface.__super__ = graphics_BaseSurface;
+graphics_CanvasSurface.prototype = $extend(graphics_BaseSurface.prototype,{
+	render: function() {
+		var _this = this.layers;
+		var result = new Array(_this.length);
+		var _g = 0;
+		var _g1 = _this.length;
+		while(_g < _g1) {
+			var i = _g++;
+			result[i] = graphics_GTools.getBoundingBox(_this[i].items);
+		}
+		var boundingRect = graphics_GTools.getBoundingRect(result);
+		var boundingSize = graphics_GTools.getBoundingSize(boundingRect);
+		var canvas = window.document.createElement("canvas");
+		canvas.setAttribute("width",boundingSize.w == null ? "null" : "" + boundingSize.w);
+		canvas.setAttribute("height",boundingSize.h == null ? "null" : "" + boundingSize.h);
+		canvas.style.width = boundingSize.w + "px";
+		canvas.style.height = boundingSize.h + "px";
+		var ctx = canvas.getContext("2d",null);
+		var _g = 0;
+		var _g1 = this.layers;
+		while(_g < _g1.length) {
+			var movedItems = graphics_GTools.moveItems(_g1[_g++].items,-boundingRect.x,-boundingRect.y);
+			var _g2 = 0;
+			while(_g2 < movedItems.length) {
+				var item = movedItems[_g2];
+				++_g2;
+				switch(item._hx_index) {
+				case 0:
+					var _g3 = item.s;
+					ctx.beginPath();
+					ctx.moveTo(item.x1,item.y1);
+					ctx.lineTo(item.x2,item.y2);
+					if(_g3 != null) {
+						switch(_g3._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g3.c);
+							ctx.lineWidth = _g3.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				case 1:
+					var _g4 = item.fill;
+					var _g5 = item.stroke;
+					ctx.beginPath();
+					ctx.rect(item.x,item.y,item.w,item.h);
+					switch(_g4._hx_index) {
+					case 0:
+						break;
+					case 1:
+						ctx.fillStyle = graphics_GTools.getColor(_g4.c);
+						ctx.fill();
+						break;
+					}
+					if(_g5 != null) {
+						switch(_g5._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g5.c);
+							ctx.lineWidth = _g5.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				case 2:
+					var _g6 = item.w;
+					var _g7 = item.h;
+					var _g8 = item.fill;
+					var _g9 = item.stroke;
+					ctx.beginPath();
+					ctx.ellipse(item.x + _g6 / 2,item.y + _g7 / 2,_g6 / 2,_g7 / 2,Math.PI / 4,0,2 * Math.PI);
+					switch(_g8._hx_index) {
+					case 0:
+						break;
+					case 1:
+						var _g10 = _g8.c;
+						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 419, className : "graphics.CanvasSurface", methodName : "render"});
+						ctx.fillStyle = graphics_GTools.getColor(_g10);
+						ctx.fill();
+						break;
+					}
+					if(_g9 != null) {
+						switch(_g9._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g9.c);
+							ctx.lineWidth = _g9.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				default:
+				}
+			}
+		}
+		return canvas;
+	}
+	,__class__: graphics_CanvasSurface
+});
 var haxe_StackItem = $hxEnums["haxe.StackItem"] = { __ename__:"haxe.StackItem",__constructs__:null
 	,CFunction: {_hx_name:"CFunction",_hx_index:0,__enum__:"haxe.StackItem",toString:$estr}
 	,Module: ($_=function(m) { return {_hx_index:1,m:m,__enum__:"haxe.StackItem",toString:$estr}; },$_._hx_name="Module",$_.__params__ = ["m"],$_)
@@ -409,8 +1130,7 @@ haxe_CallStack.toString = function(stack) {
 	var _g = 0;
 	var _g1 = stack;
 	while(_g < _g1.length) {
-		var s = _g1[_g];
-		++_g;
+		var s = _g1[_g++];
 		b.b += "\nCalled from ";
 		haxe_CallStack.itemToString(b,s);
 	}
@@ -422,19 +1142,16 @@ haxe_CallStack.subtract = function(this1,stack) {
 	while(++i < this1.length) {
 		var _g = 0;
 		var _g1 = stack.length;
-		while(_g < _g1) {
-			var j = _g++;
-			if(haxe_CallStack.equalItems(this1[i],stack[j])) {
-				if(startIndex < 0) {
-					startIndex = i;
-				}
-				++i;
-				if(i >= this1.length) {
-					break;
-				}
-			} else {
-				startIndex = -1;
+		while(_g < _g1) if(haxe_CallStack.equalItems(this1[i],stack[_g++])) {
+			if(startIndex < 0) {
+				startIndex = i;
 			}
+			++i;
+			if(i >= this1.length) {
+				break;
+			}
+		} else {
+			startIndex = -1;
 		}
 		if(startIndex >= 0) {
 			break;
@@ -468,9 +1185,7 @@ haxe_CallStack.equalItems = function(item1,item2) {
 			if(item2 == null) {
 				return false;
 			} else if(item2._hx_index == 1) {
-				var m2 = item2.m;
-				var m1 = item1.m;
-				return m1 == m2;
+				return item1.m == item2.m;
 			} else {
 				return false;
 			}
@@ -479,16 +1194,8 @@ haxe_CallStack.equalItems = function(item1,item2) {
 			if(item2 == null) {
 				return false;
 			} else if(item2._hx_index == 2) {
-				var item21 = item2.s;
-				var file2 = item2.file;
-				var line2 = item2.line;
-				var col2 = item2.column;
-				var col1 = item1.column;
-				var line1 = item1.line;
-				var file1 = item1.file;
-				var item11 = item1.s;
-				if(file1 == file2 && line1 == line2 && col1 == col2) {
-					return haxe_CallStack.equalItems(item11,item21);
+				if(item1.file == item2.file && item1.line == item2.line && item1.column == item2.column) {
+					return haxe_CallStack.equalItems(item1.s,item2.s);
 				} else {
 					return false;
 				}
@@ -500,12 +1207,8 @@ haxe_CallStack.equalItems = function(item1,item2) {
 			if(item2 == null) {
 				return false;
 			} else if(item2._hx_index == 3) {
-				var class2 = item2.classname;
-				var method2 = item2.method;
-				var method1 = item1.method;
-				var class1 = item1.classname;
-				if(class1 == class2) {
-					return method1 == method2;
+				if(item1.classname == item2.classname) {
+					return item1.method == item2.method;
 				} else {
 					return false;
 				}
@@ -517,9 +1220,7 @@ haxe_CallStack.equalItems = function(item1,item2) {
 			if(item2 == null) {
 				return false;
 			} else if(item2._hx_index == 4) {
-				var v2 = item2.v;
-				var v1 = item1.v;
-				return v1 == v2;
+				return item1.v == item2.v;
 			} else {
 				return false;
 			}
@@ -533,41 +1234,36 @@ haxe_CallStack.itemToString = function(b,s) {
 		b.b += "a C function";
 		break;
 	case 1:
-		var m = s.m;
-		b.b += "module ";
-		b.b += m == null ? "null" : "" + m;
+		var _g = s.m;
+		b.b = (b.b += "module ") + (_g == null ? "null" : "" + _g);
 		break;
 	case 2:
-		var s1 = s.s;
-		var file = s.file;
-		var line = s.line;
-		var col = s.column;
-		if(s1 != null) {
-			haxe_CallStack.itemToString(b,s1);
+		var _g = s.s;
+		var _g1 = s.file;
+		var _g2 = s.line;
+		var _g3 = s.column;
+		if(_g != null) {
+			haxe_CallStack.itemToString(b,_g);
 			b.b += " (";
 		}
-		b.b += file == null ? "null" : "" + file;
-		b.b += " line ";
-		b.b += line == null ? "null" : "" + line;
-		if(col != null) {
-			b.b += " column ";
-			b.b += col == null ? "null" : "" + col;
+		b.b = (b.b += _g1 == null ? "null" : "" + _g1) + " line ";
+		b.b += _g2 == null ? "null" : "" + _g2;
+		if(_g3 != null) {
+			b.b = (b.b += " column ") + (_g3 == null ? "null" : "" + _g3);
 		}
-		if(s1 != null) {
+		if(_g != null) {
 			b.b += ")";
 		}
 		break;
 	case 3:
-		var cname = s.classname;
-		var meth = s.method;
-		b.b += Std.string(cname == null ? "<unknown>" : cname);
-		b.b += ".";
-		b.b += meth == null ? "null" : "" + meth;
+		var _g = s.classname;
+		var _g1 = s.method;
+		b.b = (b.b += Std.string(_g == null ? "<unknown>" : _g)) + ".";
+		b.b += _g1 == null ? "null" : "" + _g1;
 		break;
 	case 4:
-		var n = s.v;
-		b.b += "local function #";
-		b.b += n == null ? "null" : "" + n;
+		var _g = s.v;
+		b.b = (b.b += "local function #") + (_g == null ? "null" : "" + _g);
 		break;
 	}
 };
@@ -647,8 +1343,7 @@ haxe_Exception.prototype = $extend(Error.prototype,{
 			this.setProperty("__exceptionStack",value);
 			return value;
 		} else {
-			var s = _g;
-			return s;
+			return _g;
 		}
 	}
 	,setProperty: function(name,value) {
@@ -672,11 +1367,7 @@ haxe_Log.formatOutput = function(v,infos) {
 	if(infos.customParams != null) {
 		var _g = 0;
 		var _g1 = infos.customParams;
-		while(_g < _g1.length) {
-			var v = _g1[_g];
-			++_g;
-			str += ", " + Std.string(v);
-		}
+		while(_g < _g1.length) str += ", " + Std.string(_g1[_g++]);
 	}
 	return pstr + ": " + str;
 };
@@ -754,9 +1445,8 @@ haxe_NativeStackTrace.tryHaxeStack = function(e) {
 	}
 	var oldValue = Error.prepareStackTrace;
 	Error.prepareStackTrace = haxe_NativeStackTrace.prepareHxStackTrace;
-	var stack = e.stack;
 	Error.prepareStackTrace = oldValue;
-	return stack;
+	return e.stack;
 };
 haxe_NativeStackTrace.prepareHxStackTrace = function(e,callsites) {
 	var stack = [];
@@ -772,9 +1462,7 @@ haxe_NativeStackTrace.prepareHxStackTrace = function(e,callsites) {
 		if(fullName != null) {
 			var idx = fullName.lastIndexOf(".");
 			if(idx >= 0) {
-				var className = fullName.substring(0,idx);
-				var methodName = fullName.substring(idx + 1);
-				method = haxe_StackItem.Method(className,methodName);
+				method = haxe_StackItem.Method(fullName.substring(0,idx),fullName.substring(idx + 1));
 			} else {
 				method = haxe_StackItem.Method(null,fullName);
 			}
@@ -810,12 +1498,14 @@ haxe_NativeStackTrace.skipLines = function(stack,skip,pos) {
 	if(pos == null) {
 		pos = 0;
 	}
-	if(skip > 0) {
+	while(true) if(skip > 0) {
 		pos = stack.indexOf("\n",pos);
 		if(pos < 0) {
 			return "";
 		} else {
-			return haxe_NativeStackTrace.skipLines(stack,--skip,pos + 1);
+			skip = --skip;
+			pos += 1;
+			continue;
 		}
 	} else {
 		return stack.substring(pos);
@@ -1010,6 +1700,530 @@ haxe_rtti_Meta.getFields = function(t) {
 		return meta.fields;
 	}
 };
+var haxe_xml_XmlParserException = function(message,xml,position) {
+	this.xml = xml;
+	this.message = message;
+	this.position = position;
+	this.lineNumber = 1;
+	this.positionAtLine = 0;
+	var _g = 0;
+	while(_g < position) {
+		var c = xml.charCodeAt(_g++);
+		if(c == 10) {
+			this.lineNumber++;
+			this.positionAtLine = 0;
+		} else if(c != 13) {
+			this.positionAtLine++;
+		}
+	}
+};
+haxe_xml_XmlParserException.__name__ = "haxe.xml.XmlParserException";
+haxe_xml_XmlParserException.prototype = {
+	message: null
+	,lineNumber: null
+	,positionAtLine: null
+	,position: null
+	,xml: null
+	,toString: function() {
+		var c = js_Boot.getClass(this);
+		return c.__name__ + ": " + this.message + " at line " + this.lineNumber + " char " + this.positionAtLine;
+	}
+	,__class__: haxe_xml_XmlParserException
+};
+var haxe_xml_Parser = function() { };
+haxe_xml_Parser.__name__ = "haxe.xml.Parser";
+haxe_xml_Parser.parse = function(str,strict) {
+	if(strict == null) {
+		strict = false;
+	}
+	var doc = Xml.createDocument();
+	haxe_xml_Parser.doParse(str,strict,0,doc);
+	return doc;
+};
+haxe_xml_Parser.doParse = function(str,strict,p,parent) {
+	if(p == null) {
+		p = 0;
+	}
+	var xml = null;
+	var state = 1;
+	var next = 1;
+	var aname = null;
+	var start = 0;
+	var nsubs = 0;
+	var nbrackets = 0;
+	var buf = new StringBuf();
+	var escapeNext = 1;
+	var attrValQuote = -1;
+	while(p < str.length) {
+		var c = str.charCodeAt(p);
+		switch(state) {
+		case 0:
+			switch(c) {
+			case 9:case 10:case 13:case 32:
+				break;
+			default:
+				state = next;
+				continue;
+			}
+			break;
+		case 1:
+			if(c == 60) {
+				state = 0;
+				next = 2;
+			} else {
+				start = p;
+				state = 13;
+				continue;
+			}
+			break;
+		case 2:
+			switch(c) {
+			case 33:
+				if(str.charCodeAt(p + 1) == 91) {
+					p += 2;
+					if(HxOverrides.substr(str,p,6).toUpperCase() != "CDATA[") {
+						throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected <![CDATA[",str,p));
+					}
+					p += 5;
+					state = 17;
+					start = p + 1;
+				} else if(str.charCodeAt(p + 1) == 68 || str.charCodeAt(p + 1) == 100) {
+					if(HxOverrides.substr(str,p + 2,6).toUpperCase() != "OCTYPE") {
+						throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected <!DOCTYPE",str,p));
+					}
+					p += 8;
+					state = 16;
+					start = p + 1;
+				} else if(str.charCodeAt(p + 1) != 45 || str.charCodeAt(p + 2) != 45) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected <!--",str,p));
+				} else {
+					p += 2;
+					state = 15;
+					start = p + 1;
+				}
+				break;
+			case 47:
+				if(parent == null) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected node name",str,p));
+				}
+				start = p + 1;
+				state = 0;
+				next = 10;
+				break;
+			case 63:
+				state = 14;
+				start = p;
+				break;
+			default:
+				state = 3;
+				start = p;
+				continue;
+			}
+			break;
+		case 3:
+			if(!(c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45)) {
+				if(p == start) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected node name",str,p));
+				}
+				xml = Xml.createElement(HxOverrides.substr(str,start,p - start));
+				parent.addChild(xml);
+				++nsubs;
+				state = 0;
+				next = 4;
+				continue;
+			}
+			break;
+		case 4:
+			switch(c) {
+			case 47:
+				state = 11;
+				break;
+			case 62:
+				state = 9;
+				break;
+			default:
+				state = 5;
+				start = p;
+				continue;
+			}
+			break;
+		case 5:
+			if(!(c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45)) {
+				if(start == p) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected attribute name",str,p));
+				}
+				aname = HxOverrides.substr(str,start,p - start);
+				if(xml.exists(aname)) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Duplicate attribute [" + aname + "]",str,p));
+				}
+				state = 0;
+				next = 6;
+				continue;
+			}
+			break;
+		case 6:
+			if(c == 61) {
+				state = 0;
+				next = 7;
+			} else {
+				throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected =",str,p));
+			}
+			break;
+		case 7:
+			switch(c) {
+			case 34:case 39:
+				buf = new StringBuf();
+				state = 8;
+				start = p + 1;
+				attrValQuote = c;
+				break;
+			default:
+				throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected \"",str,p));
+			}
+			break;
+		case 8:
+			switch(c) {
+			case 38:
+				var len = p - start;
+				buf.b += len == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len);
+				state = 18;
+				escapeNext = 8;
+				start = p + 1;
+				break;
+			case 60:case 62:
+				if(strict) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Invalid unescaped " + String.fromCodePoint(c) + " in attribute value",str,p));
+				} else if(c == attrValQuote) {
+					var len1 = p - start;
+					buf.b += len1 == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len1);
+					var val = buf.b;
+					buf = new StringBuf();
+					xml.set(aname,val);
+					state = 0;
+					next = 4;
+				}
+				break;
+			default:
+				if(c == attrValQuote) {
+					var len2 = p - start;
+					buf.b += len2 == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len2);
+					var val1 = buf.b;
+					buf = new StringBuf();
+					xml.set(aname,val1);
+					state = 0;
+					next = 4;
+				}
+			}
+			break;
+		case 9:
+			p = haxe_xml_Parser.doParse(str,strict,p,xml);
+			start = p;
+			state = 1;
+			break;
+		case 10:
+			if(!(c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45)) {
+				if(start == p) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected node name",str,p));
+				}
+				var v = HxOverrides.substr(str,start,p - start);
+				if(parent == null || parent.nodeType != 0) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Unexpected </" + v + ">, tag is not open",str,p));
+				}
+				if(parent.nodeType != Xml.Element) {
+					throw haxe_Exception.thrown("Bad node type, expected Element but found " + (parent.nodeType == null ? "null" : XmlType.toString(parent.nodeType)));
+				}
+				if(v != parent.nodeName) {
+					if(parent.nodeType != Xml.Element) {
+						throw haxe_Exception.thrown("Bad node type, expected Element but found " + (parent.nodeType == null ? "null" : XmlType.toString(parent.nodeType)));
+					}
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected </" + parent.nodeName + ">",str,p));
+				}
+				state = 0;
+				next = 12;
+				continue;
+			}
+			break;
+		case 11:
+			if(c == 62) {
+				state = 1;
+			} else {
+				throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected >",str,p));
+			}
+			break;
+		case 12:
+			if(c == 62) {
+				if(nsubs == 0) {
+					parent.addChild(Xml.createPCData(""));
+				}
+				return p;
+			} else {
+				throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Expected >",str,p));
+			}
+			break;
+		case 13:
+			if(c == 60) {
+				var len3 = p - start;
+				buf.b += len3 == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len3);
+				var child = Xml.createPCData(buf.b);
+				buf = new StringBuf();
+				parent.addChild(child);
+				++nsubs;
+				state = 0;
+				next = 2;
+			} else if(c == 38) {
+				var len4 = p - start;
+				buf.b += len4 == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len4);
+				state = 18;
+				escapeNext = 13;
+				start = p + 1;
+			}
+			break;
+		case 14:
+			if(c == 63 && str.charCodeAt(p + 1) == 62) {
+				++p;
+				parent.addChild(Xml.createProcessingInstruction(HxOverrides.substr(str,start + 1,p - start - 2)));
+				++nsubs;
+				state = 1;
+			}
+			break;
+		case 15:
+			if(c == 45 && str.charCodeAt(p + 1) == 45 && str.charCodeAt(p + 2) == 62) {
+				parent.addChild(Xml.createComment(HxOverrides.substr(str,start,p - start)));
+				++nsubs;
+				p += 2;
+				state = 1;
+			}
+			break;
+		case 16:
+			if(c == 91) {
+				++nbrackets;
+			} else if(c == 93) {
+				--nbrackets;
+			} else if(c == 62 && nbrackets == 0) {
+				parent.addChild(Xml.createDocType(HxOverrides.substr(str,start,p - start)));
+				++nsubs;
+				state = 1;
+			}
+			break;
+		case 17:
+			if(c == 93 && str.charCodeAt(p + 1) == 93 && str.charCodeAt(p + 2) == 62) {
+				parent.addChild(Xml.createCData(HxOverrides.substr(str,start,p - start)));
+				++nsubs;
+				p += 2;
+				state = 1;
+			}
+			break;
+		case 18:
+			if(c == 59) {
+				var s = HxOverrides.substr(str,start,p - start);
+				if(s.charCodeAt(0) == 35) {
+					var c1 = s.charCodeAt(1) == 120 ? Std.parseInt("0" + HxOverrides.substr(s,1,s.length - 1)) : Std.parseInt(HxOverrides.substr(s,1,s.length - 1));
+					buf.b += String.fromCodePoint(c1);
+				} else if(!Object.prototype.hasOwnProperty.call(haxe_xml_Parser.escapes.h,s)) {
+					if(strict) {
+						throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Undefined entity: " + s,str,p));
+					}
+					buf.b += Std.string("&" + s + ";");
+				} else {
+					buf.b += Std.string(haxe_xml_Parser.escapes.h[s]);
+				}
+				start = p + 1;
+				state = escapeNext;
+			} else if(!(c >= 97 && c <= 122 || c >= 65 && c <= 90 || c >= 48 && c <= 57 || c == 58 || c == 46 || c == 95 || c == 45) && c != 35) {
+				if(strict) {
+					throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Invalid character in entity: " + String.fromCodePoint(c),str,p));
+				}
+				buf.b += String.fromCodePoint(38);
+				var len5 = p - start;
+				buf.b += len5 == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len5);
+				--p;
+				start = p + 1;
+				state = escapeNext;
+			}
+			break;
+		}
+		++p;
+	}
+	if(state == 1) {
+		start = p;
+		state = 13;
+	}
+	if(state == 13) {
+		if(parent.nodeType == 0) {
+			if(parent.nodeType != Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, expected Element but found " + (parent.nodeType == null ? "null" : XmlType.toString(parent.nodeType)));
+			}
+			throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Unclosed node <" + parent.nodeName + ">",str,p));
+		}
+		if(p != start || nsubs == 0) {
+			var len = p - start;
+			buf.b += len == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len);
+			parent.addChild(Xml.createPCData(buf.b));
+			++nsubs;
+		}
+		return p;
+	}
+	if(!strict && state == 18 && escapeNext == 13) {
+		buf.b += String.fromCodePoint(38);
+		var len = p - start;
+		buf.b += len == null ? HxOverrides.substr(str,start,null) : HxOverrides.substr(str,start,len);
+		parent.addChild(Xml.createPCData(buf.b));
+		++nsubs;
+		return p;
+	}
+	throw haxe_Exception.thrown(new haxe_xml_XmlParserException("Unexpected end",str,p));
+};
+var haxe_xml_Printer = function(pretty) {
+	this.output = new StringBuf();
+	this.pretty = pretty;
+};
+haxe_xml_Printer.__name__ = "haxe.xml.Printer";
+haxe_xml_Printer.print = function(xml,pretty) {
+	if(pretty == null) {
+		pretty = false;
+	}
+	var printer = new haxe_xml_Printer(pretty);
+	printer.writeNode(xml,"");
+	return printer.output.b;
+};
+haxe_xml_Printer.prototype = {
+	output: null
+	,pretty: null
+	,writeNode: function(value,tabs) {
+		switch(value.nodeType) {
+		case 0:
+			this.output.b += Std.string(tabs + "<");
+			if(value.nodeType != Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, expected Element but found " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			this.output.b += Std.string(value.nodeName);
+			var attribute = value.attributes();
+			while(attribute.hasNext()) {
+				var attribute1 = attribute.next();
+				this.output.b += Std.string(" " + attribute1 + "=\"");
+				var input = StringTools.htmlEscape(value.get(attribute1),true);
+				this.output.b += Std.string(input);
+				this.output.b += "\"";
+			}
+			if(this.hasChildren(value)) {
+				this.output.b += ">";
+				if(this.pretty) {
+					this.output.b += "\n";
+				}
+				if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) {
+					throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+				}
+				var _this = value.children;
+				var _g_current = 0;
+				while(_g_current < _this.length) this.writeNode(_this[_g_current++],this.pretty ? tabs + "\t" : tabs);
+				this.output.b += Std.string(tabs + "</");
+				if(value.nodeType != Xml.Element) {
+					throw haxe_Exception.thrown("Bad node type, expected Element but found " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+				}
+				this.output.b += Std.string(value.nodeName);
+				this.output.b += ">";
+				if(this.pretty) {
+					this.output.b += "\n";
+				}
+			} else {
+				this.output.b += "/>";
+				if(this.pretty) {
+					this.output.b += "\n";
+				}
+			}
+			break;
+		case 1:
+			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, unexpected " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			var nodeValue = value.nodeValue;
+			if(nodeValue.length != 0) {
+				var input = tabs + StringTools.htmlEscape(nodeValue);
+				this.output.b += Std.string(input);
+				if(this.pretty) {
+					this.output.b += "\n";
+				}
+			}
+			break;
+		case 2:
+			this.output.b += Std.string(tabs + "<![CDATA[");
+			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, unexpected " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			this.output.b += Std.string(value.nodeValue);
+			this.output.b += "]]>";
+			if(this.pretty) {
+				this.output.b += "\n";
+			}
+			break;
+		case 3:
+			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, unexpected " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			var commentContent = value.nodeValue;
+			var _this_r = new RegExp("[\n\r\t]+","g".split("u").join(""));
+			commentContent = commentContent.replace(_this_r,"");
+			commentContent = "<!--" + commentContent + "-->";
+			this.output.b += tabs == null ? "null" : "" + tabs;
+			this.output.b += Std.string(StringTools.trim(commentContent));
+			if(this.pretty) {
+				this.output.b += "\n";
+			}
+			break;
+		case 4:
+			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, unexpected " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			this.output.b += Std.string("<!DOCTYPE " + value.nodeValue + ">");
+			if(this.pretty) {
+				this.output.b += "\n";
+			}
+			break;
+		case 5:
+			if(value.nodeType == Xml.Document || value.nodeType == Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, unexpected " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			this.output.b += Std.string("<?" + value.nodeValue + "?>");
+			if(this.pretty) {
+				this.output.b += "\n";
+			}
+			break;
+		case 6:
+			if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) {
+				throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+			}
+			var _this = value.children;
+			var _g_current = 0;
+			while(_g_current < _this.length) this.writeNode(_this[_g_current++],tabs);
+			break;
+		}
+	}
+	,hasChildren: function(value) {
+		if(value.nodeType != Xml.Document && value.nodeType != Xml.Element) {
+			throw haxe_Exception.thrown("Bad node type, expected Element or Document but found " + (value.nodeType == null ? "null" : XmlType.toString(value.nodeType)));
+		}
+		var _this = value.children;
+		var _g_current = 0;
+		while(_g_current < _this.length) {
+			var child = _this[_g_current++];
+			switch(child.nodeType) {
+			case 0:case 1:
+				return true;
+			case 2:case 3:
+				if(child.nodeType == Xml.Document || child.nodeType == Xml.Element) {
+					throw haxe_Exception.thrown("Bad node type, unexpected " + (child.nodeType == null ? "null" : XmlType.toString(child.nodeType)));
+				}
+				if(StringTools.ltrim(child.nodeValue).length != 0) {
+					return true;
+				}
+				break;
+			default:
+			}
+		}
+		return false;
+	}
+	,__class__: haxe_xml_Printer
+};
 var js_Boot = function() { };
 js_Boot.__name__ = "js.Boot";
 js_Boot.getClass = function(o) {
@@ -1122,25 +2336,26 @@ js_Boot.__string_rec = function(o,s) {
 	}
 };
 js_Boot.__interfLoop = function(cc,cl) {
-	if(cc == null) {
-		return false;
-	}
-	if(cc == cl) {
-		return true;
-	}
-	var intf = cc.__interfaces__;
-	if(intf != null) {
-		var _g = 0;
-		var _g1 = intf.length;
-		while(_g < _g1) {
-			var i = _g++;
-			var i1 = intf[i];
-			if(i1 == cl || js_Boot.__interfLoop(i1,cl)) {
-				return true;
+	while(true) {
+		if(cc == null) {
+			return false;
+		}
+		if(cc == cl) {
+			return true;
+		}
+		var intf = cc.__interfaces__;
+		if(intf != null) {
+			var _g = 0;
+			var _g1 = intf.length;
+			while(_g < _g1) {
+				var i = intf[_g++];
+				if(i == cl || js_Boot.__interfLoop(i,cl)) {
+					return true;
+				}
 			}
 		}
+		cc = cc.__super__;
 	}
-	return js_Boot.__interfLoop(cc.__super__,cl);
 };
 js_Boot.__instanceof = function(o,cl) {
 	if(cl == null) {
@@ -1220,6 +2435,62 @@ js_Boot.__isNativeObj = function(o) {
 };
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
+};
+function tools_ArrayItems_last(a) {
+	return a[a.length - 1];
+}
+function tools_ArrayItems_first(a) {
+	return a[0];
+}
+var tools_EnumTools = function() { };
+tools_EnumTools.__name__ = "tools.EnumTools";
+var tools_PairIterator = function(a,tail,includeNullAsTail) {
+	if(includeNullAsTail == null) {
+		includeNullAsTail = false;
+	}
+	this._index = 0;
+	this.length = 0;
+	this.tail = null;
+	this.a = a;
+	this.tail = tail;
+	this.length = a.length;
+	if(tail != null || includeNullAsTail) {
+		this.length++;
+	}
+	if(this.length < 2) {
+		throw haxe_Exception.thrown("PairIterator error: Can not handle less than two items. A \"tail\" item can be added to the constructor, or \"includeNullAsTail\" can be set to include null as the rightmost item.");
+	}
+};
+tools_PairIterator.__name__ = "tools.PairIterator";
+tools_PairIterator.toPairIterator = function(a,tail,includeNullAsTail) {
+	if(includeNullAsTail == null) {
+		includeNullAsTail = false;
+	}
+	return new tools_PairIterator(a,tail,includeNullAsTail);
+};
+tools_PairIterator.prototype = {
+	a: null
+	,tail: null
+	,length: null
+	,_index: null
+	,hasNext: function() {
+		return this._index < this.length - 1;
+	}
+	,next: function() {
+		if(this._index < this.a.length - 1) {
+			return { key : this.a[this._index], value : this.a[++this._index]};
+		} else {
+			return { key : this.a[this._index++], value : this.tail};
+		}
+	}
+	,get_index: function() {
+		return this._index - 1;
+	}
+	,keyValueIterator: function() {
+		return { hasNext : $bind(this,this.hasNext), next : $bind(this,this.next)};
+	}
+	,__class__: tools_PairIterator
+	,__properties__: {get_index:"get_index"}
 };
 var utest_Assert = function() { };
 utest_Assert.__name__ = "utest.Assert";
@@ -1383,8 +2654,7 @@ utest_Assert.getTypeName = function(v) {
 	}
 };
 utest_Assert.isIterable = function(v,isAnonym) {
-	var fields = isAnonym ? Reflect.fields(v) : Type.getInstanceFields(js_Boot.getClass(v));
-	if(!Lambda.has(fields,"iterator")) {
+	if(!Lambda.has(isAnonym ? Reflect.fields(v) : Type.getInstanceFields(js_Boot.getClass(v)),"iterator")) {
 		return false;
 	}
 	return Reflect.isFunction(Reflect.field(v,"iterator"));
@@ -1442,8 +2712,7 @@ utest_Assert.sameAs = function(expected,value,status,approx) {
 				if(Reflect.isFunction(e)) {
 					continue;
 				}
-				var v = Reflect.field(value,field);
-				if(!utest_Assert.sameAs(e,v,status,approx)) {
+				if(!utest_Assert.sameAs(e,Reflect.field(value,field),status,approx)) {
 					return false;
 				}
 			}
@@ -1584,17 +2853,11 @@ utest_Assert.sameAs = function(expected,value,status,approx) {
 				var vmap = js_Boot.__cast(value , haxe_IMap);
 				var _g1 = [];
 				var k = map.keys();
-				while(k.hasNext()) {
-					var k1 = k.next();
-					_g1.push(k1);
-				}
+				while(k.hasNext()) _g1.push(k.next());
 				var keys = _g1;
 				var _g1 = [];
 				var k = vmap.keys();
-				while(k.hasNext()) {
-					var k1 = k.next();
-					_g1.push(k1);
-				}
+				while(k.hasNext()) _g1.push(k.next());
 				var vkeys = _g1;
 				if(keys.length != vkeys.length) {
 					status.error = "expected " + keys.length + " keys but they are " + vkeys.length + (status.path == "" ? "" : " for field " + status.path);
@@ -1673,8 +2936,7 @@ utest_Assert.sameAs = function(expected,value,status,approx) {
 				if(Reflect.isFunction(e)) {
 					continue;
 				}
-				var v = Reflect.field(value,field);
-				if(!utest_Assert.sameAs(e,v,status,approx)) {
+				if(!utest_Assert.sameAs(e,Reflect.field(value,field),status,approx)) {
 					return false;
 				}
 			}
@@ -1919,11 +3181,7 @@ utest_Async.prototype = {
 		this.timer.stop();
 		var _g = 0;
 		var _g1 = this.callbacks;
-		while(_g < _g1.length) {
-			var cb = _g1[_g];
-			++_g;
-			cb();
-		}
+		while(_g < _g1.length) _g1[_g++]();
 	}
 	,setTimeout: function(timeoutMs,pos) {
 		if(this.resolved) {
@@ -1934,8 +3192,7 @@ utest_Async.prototype = {
 		}
 		this.timer.stop();
 		this.timeoutMs = timeoutMs;
-		var delay = timeoutMs - Math.round(1000 * (HxOverrides.now() / 1000 - this.startTime));
-		this.timer = haxe_Timer.delay($bind(this,this.setTimedOutState),delay);
+		this.timer = haxe_Timer.delay($bind(this,this.setTimedOutState),timeoutMs - Math.round(1000 * (HxOverrides.now() / 1000 - this.startTime)));
 	}
 	,branch: function(fn,pos) {
 		var branch = new utest_Async(this.timeoutMs);
@@ -2026,11 +3283,7 @@ utest_Dispatcher.prototype = {
 		try {
 			var list = this.handlers.slice();
 			var _g = 0;
-			while(_g < list.length) {
-				var l = list[_g];
-				++_g;
-				l(e);
-			}
+			while(_g < list.length) list[_g++](e);
 			return true;
 		} catch( _g ) {
 			if(js_Boot.__instanceof(haxe_Exception.caught(_g).unwrap(),utest__$Dispatcher_EventException)) {
@@ -2076,11 +3329,7 @@ utest_Notifier.prototype = {
 		try {
 			var list = this.handlers.slice();
 			var _g = 0;
-			while(_g < list.length) {
-				var l = list[_g];
-				++_g;
-				l();
-			}
+			while(_g < list.length) list[_g++]();
 			return true;
 		} catch( _g ) {
 			if(js_Boot.__instanceof(haxe_Exception.caught(_g).unwrap(),utest__$Dispatcher_EventException)) {
@@ -2155,8 +3404,8 @@ utest_TestHandler.prototype = {
 				this.executeFixtureMethod();
 			}
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.SetupError(e,utest_TestHandler.exceptionStack()));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.SetupError(_g1,utest_TestHandler.exceptionStack()));
 		}
 		isSync = false;
 		if(!expectingAsync) {
@@ -2167,8 +3416,8 @@ utest_TestHandler.prototype = {
 		try {
 			this.executeMethod(this.fixture.method);
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.Error(e,utest_TestHandler.exceptionStack()));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.Error(_g1,utest_TestHandler.exceptionStack()));
 		}
 	}
 	,executeFinally: function() {
@@ -2233,8 +3482,8 @@ utest_TestHandler.prototype = {
 				handler.bindHandler();
 				f();
 			} catch( _g ) {
-				var e = haxe_Exception.caught(_g).unwrap();
-				handler.results.add(utest_Assertation.AsyncError(e,utest_TestHandler.exceptionStack(0)));
+				var _g1 = haxe_Exception.caught(_g).unwrap();
+				handler.results.add(utest_Assertation.AsyncError(_g1,utest_TestHandler.exceptionStack(0)));
 			}
 		};
 	}
@@ -2254,8 +3503,8 @@ utest_TestHandler.prototype = {
 				handler.bindHandler();
 				f(e);
 			} catch( _g ) {
-				var e = haxe_Exception.caught(_g).unwrap();
-				handler.results.add(utest_Assertation.AsyncError(e,utest_TestHandler.exceptionStack(0)));
+				var _g1 = haxe_Exception.caught(_g).unwrap();
+				handler.results.add(utest_Assertation.AsyncError(_g1,utest_TestHandler.exceptionStack(0)));
 			}
 		};
 	}
@@ -2305,8 +3554,8 @@ utest_TestHandler.prototype = {
 			this.executeMethod(this.fixture.teardown);
 			this.executeAsyncMethod(this.fixture.teardownAsync,complete);
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.TeardownError(e,utest_TestHandler.exceptionStack(2)));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.TeardownError(_g1,utest_TestHandler.exceptionStack(2)));
 		}
 		isSync = false;
 		if(!expectingAsync) {
@@ -2351,8 +3600,8 @@ utest_ITestHandler.prototype = $extend(utest_TestHandler.prototype,{
 		try {
 			this.setupAsync = this.fixture.setupMethod();
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.SetupError(e,haxe_CallStack.exceptionStack()));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.SetupError(_g1,haxe_CallStack.exceptionStack()));
 			this.completedFinally();
 			return;
 		}
@@ -2370,8 +3619,8 @@ utest_ITestHandler.prototype = $extend(utest_TestHandler.prototype,{
 		try {
 			this.testAsync = this.test.execute();
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.Error(e,haxe_CallStack.exceptionStack()));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.Error(_g1,haxe_CallStack.exceptionStack()));
 			this.runTeardown();
 			return;
 		}
@@ -2396,8 +3645,8 @@ utest_ITestHandler.prototype = $extend(utest_TestHandler.prototype,{
 		try {
 			this.teardownAsync = this.fixture.teardownMethod();
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.results.add(utest_Assertation.TeardownError(e,haxe_CallStack.exceptionStack()));
+			var _g1 = haxe_Exception.caught(_g).unwrap();
+			this.results.add(utest_Assertation.TeardownError(_g1,haxe_CallStack.exceptionStack()));
 			this.completedFinally();
 			return;
 		}
@@ -2428,16 +3677,13 @@ utest_ITestHandler.prototype = $extend(utest_TestHandler.prototype,{
 var utest_IgnoredFixture = {};
 utest_IgnoredFixture.__properties__ = {get_ignoreReason:"get_ignoreReason",get_isIgnored:"get_isIgnored"};
 utest_IgnoredFixture.NotIgnored = function() {
-	var this1 = null;
-	return this1;
+	return null;
 };
 utest_IgnoredFixture.Ignored = function(reason) {
-	var this1 = reason != null ? reason : "";
-	return this1;
+	return reason != null ? reason : "";
 };
 utest_IgnoredFixture._new = function(reason) {
-	var this1 = reason;
-	return this1;
+	return reason;
 };
 utest_IgnoredFixture.get_isIgnored = function(this1) {
 	return this1 != null;
@@ -2459,10 +3705,6 @@ var utest_Runner = function() {
 	this.onTestStart = new utest_Dispatcher();
 	this.onTestComplete = new utest_Dispatcher();
 	this.length = 0;
-	var envPattern = null;
-	if(envPattern != null) {
-		this.globalPattern = new EReg(envPattern,"");
-	}
 };
 utest_Runner.__name__ = "utest.Runner";
 utest_Runner.prototype = {
@@ -2520,9 +3762,7 @@ utest_Runner.prototype = {
 			fixtures.push(fixture);
 		}
 		if(fixtures.length > 0) {
-			var this1 = this.iTestFixtures;
-			var value = { caseInstance : testCase, setupClass : utest_utils_AccessoriesUtils.getSetupClass(init.accessories), dependencies : init.dependencies, fixtures : fixtures, teardownClass : utest_utils_AccessoriesUtils.getTeardownClass(init.accessories)};
-			this1.h[className] = value;
+			this.iTestFixtures.h[className] = { caseInstance : testCase, setupClass : utest_utils_AccessoriesUtils.getSetupClass(init.accessories), dependencies : init.dependencies, fixtures : fixtures, teardownClass : utest_utils_AccessoriesUtils.getTeardownClass(init.accessories)};
 		}
 	}
 	,addCaseOld: function(test,setup,teardown,prefix,pattern,setupAsync,teardownAsync) {
@@ -2575,12 +3815,8 @@ utest_Runner.prototype = {
 	,isTestFixtureName: function(caseName,testName,prefixes,pattern,globalPattern) {
 		if(pattern == null && globalPattern == null) {
 			var _g = 0;
-			while(_g < prefixes.length) {
-				var prefix = prefixes[_g];
-				++_g;
-				if(StringTools.startsWith(testName,prefix)) {
-					return true;
-				}
+			while(_g < prefixes.length) if(StringTools.startsWith(testName,prefixes[_g++])) {
+				return true;
 			}
 			return false;
 		}
@@ -2605,8 +3841,7 @@ utest_Runner.prototype = {
 	}
 	,run: function() {
 		this.onStart.dispatch(this);
-		var iTestRunner = new utest__$Runner_ITestRunner(this);
-		iTestRunner.run();
+		new utest__$Runner_ITestRunner(this).run();
 		this.waitForCompletion();
 	}
 	,waitForCompletion: function() {
@@ -2621,7 +3856,7 @@ utest_Runner.prototype = {
 		var _g = this.pos;
 		var _g1 = this.fixtures.length;
 		while(_g < _g1) {
-			var i = _g++;
+			_g++;
 			var fixture = this.fixtures[this.pos++];
 			if(fixture.isITest) {
 				continue;
@@ -2629,7 +3864,7 @@ utest_Runner.prototype = {
 			if(currentCase != fixture.target) {
 				currentCase = fixture.target;
 				var c = js_Boot.getClass(currentCase);
-				utest_utils_Print.startCase(c.__name__);
+				c.__name__;
 			}
 			var handler = this.runFixture(fixture);
 			if(!handler.finished) {
@@ -2644,7 +3879,6 @@ utest_Runner.prototype = {
 		var handler = fixture.isITest ? new utest_ITestHandler(fixture) : new utest_TestHandler(fixture);
 		handler.onComplete.add($bind(this,this.testComplete));
 		handler.onPrecheck.add(($_=this.onPrecheck,$bind($_,$_.dispatch)));
-		utest_utils_Print.startTest(fixture.method);
 		this.onTestStart.dispatch(handler);
 		handler.execute();
 		return handler;
@@ -2666,10 +3900,7 @@ var utest__$Runner_ITestRunner = function(runner) {
 		while(_g_head != null) {
 			var val = _g_head.item;
 			_g_head = _g_head.next;
-			var result = val;
-			if(result._hx_index == 0) {
-				var _g = result.pos;
-			} else {
+			if(val._hx_index != 0) {
 				_gthis.failedTestsInCurrentCase.push(handler.fixture.method);
 				var c = js_Boot.getClass(handler.fixture.target);
 				_gthis.failedCases.push(c.__name__);
@@ -2726,26 +3957,17 @@ utest__$Runner_ITestRunner.prototype = {
 			result.push(cls);
 			added_h[cls] = true;
 		};
-		var h = this.runner.iTestFixtures.h;
-		var cls_h = h;
-		var cls_keys = Object.keys(h);
+		var cls_keys = Object.keys(this.runner.iTestFixtures.h);
 		var cls_length = cls_keys.length;
 		var cls_current = 0;
-		while(cls_current < cls_length) {
-			var cls = cls_keys[cls_current++];
-			addClass(cls,[]);
-		}
+		while(cls_current < cls_length) addClass(cls_keys[cls_current++],[]);
 		return new haxe_iterators_ArrayIterator(result);
 	}
 	,failedDependencies: function(data) {
 		var _g = 0;
 		var _g1 = data.dependencies;
-		while(_g < _g1.length) {
-			var dependency = _g1[_g];
-			++_g;
-			if(this.failedCases.indexOf(dependency) >= 0) {
-				return true;
-			}
+		while(_g < _g1.length) if(this.failedCases.indexOf(_g1[_g++]) >= 0) {
+			return true;
 		}
 		return false;
 	}
@@ -2759,14 +3981,12 @@ utest__$Runner_ITestRunner.prototype = {
 				this.failedCases.push(this.currentCaseName);
 				continue;
 			}
-			utest_utils_Print.startCase(this.currentCaseName);
 			this.currentCaseFixtures = data.fixtures;
 			this.teardownClass = data.teardownClass;
 			try {
 				this.setupAsync = data.setupClass();
 			} catch( _g ) {
-				var e = haxe_Exception.caught(_g).unwrap();
-				this.setupFailed(utest_Assertation.SetupError("setupClass failed: " + Std.string(e),haxe_CallStack.exceptionStack()));
+				this.setupFailed(utest_Assertation.SetupError("setupClass failed: " + Std.string(haxe_Exception.caught(_g).unwrap()),haxe_CallStack.exceptionStack()));
 				return;
 			}
 			if(this.setupAsync.resolved) {
@@ -2797,13 +4017,9 @@ utest__$Runner_ITestRunner.prototype = {
 			var fixture = this.currentCaseFixtures.shift();
 			var _g = 0;
 			var _g1 = fixture.test.dependencies;
-			while(_g < _g1.length) {
-				var dep = _g1[_g];
-				++_g;
-				if(this.failedTestsInCurrentCase.indexOf(dep) >= 0) {
-					fixture.ignoringInfo = utest_IgnoredFixture.Ignored("Failed dependencies");
-					break;
-				}
+			while(_g < _g1.length) if(this.failedTestsInCurrentCase.indexOf(_g1[_g++]) >= 0) {
+				fixture.ignoringInfo = utest_IgnoredFixture.Ignored("Failed dependencies");
+				break;
 			}
 			var handler = this.runner.runFixture(fixture);
 			if(!handler.finished) {
@@ -2814,8 +4030,7 @@ utest__$Runner_ITestRunner.prototype = {
 		try {
 			this.teardownAsync = this.teardownClass();
 		} catch( _g ) {
-			var e = haxe_Exception.caught(_g).unwrap();
-			this.teardownFailed(utest_Assertation.TeardownError("teardownClass failed: " + Std.string(e),haxe_CallStack.exceptionStack()));
+			this.teardownFailed(utest_Assertation.TeardownError("teardownClass failed: " + Std.string(haxe_Exception.caught(_g).unwrap()),haxe_CallStack.exceptionStack()));
 			return true;
 		}
 		if(this.teardownAsync.resolved && finishedHandler == null) {
@@ -2878,8 +4093,7 @@ utest_TestFixture.prototype = {
 		}
 	}
 	,getIgnored: function() {
-		var metas = haxe_rtti_Meta.getFields(js_Boot.getClass(this.target));
-		var metasForTestMetas = Reflect.getProperty(metas,this.method);
+		var metasForTestMetas = Reflect.getProperty(haxe_rtti_Meta.getFields(js_Boot.getClass(this.target)),this.method);
 		if(metasForTestMetas == null || !Object.prototype.hasOwnProperty.call(metasForTestMetas,"Ignored")) {
 			return utest_IgnoredFixture.NotIgnored();
 		}
@@ -2887,8 +4101,7 @@ utest_TestFixture.prototype = {
 		if(ignoredArgs == null || ignoredArgs.length == 0 || ignoredArgs[0] == null) {
 			return utest_IgnoredFixture.Ignored();
 		}
-		var ignoredReason = Std.string(ignoredArgs[0]);
-		return utest_IgnoredFixture.Ignored(ignoredReason);
+		return utest_IgnoredFixture.Ignored(Std.string(ignoredArgs[0]));
 	}
 	,__class__: utest_TestFixture
 };
@@ -2947,11 +4160,7 @@ utest_UTest.__name__ = "utest.UTest";
 utest_UTest.run = function(cases,callback) {
 	var runner = new utest_Runner();
 	var _g = 0;
-	while(_g < cases.length) {
-		var eachCase = cases[_g];
-		++_g;
-		runner.addCase(eachCase);
-	}
+	while(_g < cases.length) runner.addCase(cases[_g++]);
 	if(null != callback) {
 		runner.onComplete.add(function(_) {
 			callback();
@@ -3020,15 +4229,10 @@ utest_ui_common_ClassResult.prototype = {
 			errorsHavePriority = true;
 		}
 		var names = [];
-		var h = this.fixtures.h;
-		var name_h = h;
-		var name_keys = Object.keys(h);
+		var name_keys = Object.keys(this.fixtures.h);
 		var name_length = name_keys.length;
 		var name_current = 0;
-		while(name_current < name_length) {
-			var name = name_keys[name_current++];
-			names.push(name);
-		}
+		while(name_current < name_length) names.push(name_keys[name_current++]);
 		if(errorsHavePriority) {
 			var me = this;
 			names.sort(function(a,b) {
@@ -3104,49 +4308,34 @@ utest_ui_common_FixtureResult.prototype = {
 		this.list.add(assertation);
 		switch(assertation._hx_index) {
 		case 0:
-			var _g = assertation.pos;
 			this.stats.addSuccesses(1);
 			break;
 		case 1:
-			var _g = assertation.msg;
-			var _g = assertation.pos;
 			this.stats.addFailures(1);
 			break;
 		case 2:
-			var _g = assertation.e;
-			var _g = assertation.stack;
 			this.stats.addErrors(1);
 			break;
 		case 3:
-			var _g = assertation.e;
-			var _g = assertation.stack;
 			this.stats.addErrors(1);
 			this.hasSetupError = true;
 			break;
 		case 4:
-			var _g = assertation.e;
-			var _g = assertation.stack;
 			this.stats.addErrors(1);
 			this.hasTeardownError = true;
 			break;
 		case 5:
-			var _g = assertation.missedAsyncs;
-			var _g = assertation.stack;
 			this.stats.addErrors(1);
 			this.hasTimeoutError = true;
 			break;
 		case 6:
-			var _g = assertation.e;
-			var _g = assertation.stack;
 			this.stats.addErrors(1);
 			this.hasAsyncError = true;
 			break;
 		case 7:
-			var _g = assertation.msg;
 			this.stats.addWarnings(1);
 			break;
 		case 8:
-			var _g = assertation.reason;
 			this.stats.addIgnores(1);
 			break;
 		}
@@ -3190,10 +4379,7 @@ utest_ui_common_PackageResult.prototype = {
 	,stats: null
 	,addResult: function(result,flattenPackage) {
 		this.isEmpty = false;
-		var pack = this.getOrCreatePackage(result.pack,flattenPackage,this);
-		var cls = this.getOrCreateClass(pack,result.cls,result.setup,result.teardown);
-		var fix = this.createFixture(result.method,result.assertations);
-		cls.add(fix);
+		this.getOrCreateClass(this.getOrCreatePackage(result.pack,flattenPackage,this),result.cls,result.setup,result.teardown).add(this.createFixture(result.method,result.assertations));
 	}
 	,addClass: function(result) {
 		this.isEmpty = false;
@@ -3225,15 +4411,10 @@ utest_ui_common_PackageResult.prototype = {
 			errorsHavePriority = true;
 		}
 		var names = [];
-		var h = this.classes.h;
-		var name_h = h;
-		var name_keys = Object.keys(h);
+		var name_keys = Object.keys(this.classes.h);
 		var name_length = name_keys.length;
 		var name_current = 0;
-		while(name_current < name_length) {
-			var name = name_keys[name_current++];
-			names.push(name);
-		}
+		while(name_current < name_length) names.push(name_keys[name_current++]);
 		if(errorsHavePriority) {
 			var me = this;
 			names.sort(function(a,b) {
@@ -3288,15 +4469,10 @@ utest_ui_common_PackageResult.prototype = {
 		if(this.packageName == null) {
 			names.push("");
 		}
-		var h = this.packages.h;
-		var name_h = h;
-		var name_keys = Object.keys(h);
+		var name_keys = Object.keys(this.packages.h);
 		var name_length = name_keys.length;
 		var name_current = 0;
-		while(name_current < name_length) {
-			var name = name_keys[name_current++];
-			names.push(name);
-		}
+		while(name_current < name_length) names.push(name_keys[name_current++]);
 		if(errorsHavePriority) {
 			var me = this;
 			names.sort(function(a,b) {
@@ -3346,10 +4522,7 @@ utest_ui_common_PackageResult.prototype = {
 	,createFixture: function(method,assertations) {
 		var f = new utest_ui_common_FixtureResult(method);
 		var assertation = $getIterator(assertations);
-		while(assertation.hasNext()) {
-			var assertation1 = assertation.next();
-			f.add(assertation1);
-		}
+		while(assertation.hasNext()) f.add(assertation.next());
 		return f;
 	}
 	,getOrCreateClass: function(pack,cls,setup,teardown) {
@@ -3374,11 +4547,7 @@ utest_ui_common_PackageResult.prototype = {
 		} else {
 			var parts = pack.split(".");
 			var _g = 0;
-			while(_g < parts.length) {
-				var part = parts[_g];
-				++_g;
-				ref = this.getOrCreatePackage(part,true,ref);
-			}
+			while(_g < parts.length) ref = this.getOrCreatePackage(parts[_g++],true,ref);
 			return ref;
 		}
 	}
@@ -3459,8 +4628,7 @@ utest_ui_common_ResultAggregator.prototype = {
 		var _g = 0;
 		var _g1 = this.runner.length;
 		while(_g < _g1) {
-			var i = _g++;
-			var fixture = this.runner.getFixture(i);
+			var fixture = this.runner.getFixture(_g++);
 			if(!fixture.isITest) {
 				++total;
 				if(first == null) {
@@ -3502,11 +4670,7 @@ utest_ui_common_ResultAggregator.prototype = {
 		} else {
 			var parts = pack.split(".");
 			var _g = 0;
-			while(_g < parts.length) {
-				var part = parts[_g];
-				++_g;
-				ref = this.getOrCreatePackage(part,true,ref);
-			}
+			while(_g < parts.length) ref = this.getOrCreatePackage(parts[_g++],true,ref);
 			return ref;
 		}
 	}
@@ -3524,8 +4688,7 @@ utest_ui_common_ResultAggregator.prototype = {
 		while(_g_head != null) {
 			var val = _g_head.item;
 			_g_head = _g_head.next;
-			var assertation = val;
-			f.add(assertation);
+			f.add(val);
 		}
 		return f;
 	}
@@ -3545,8 +4708,7 @@ utest_ui_common_ResultAggregator.prototype = {
 		result.cls = "";
 		result.method = "";
 		result.assertations = new haxe_ds_List();
-		var pos = { fileName : "", lineNumber : 1, className : "utest.Runner", methodName : "run"};
-		result.assertations.add(utest_Assertation.Failure("No tests executed.",pos));
+		result.assertations.add(utest_Assertation.Failure("No tests executed.",{ fileName : "", lineNumber : 1, className : "utest.Runner", methodName : "run"}));
 		return result;
 	}
 	,__class__: utest_ui_common_ResultAggregator
@@ -3795,11 +4957,10 @@ utest_ui_text_HtmlReport.prototype = {
 			} else {
 				count = 1;
 				last = part;
-				parts.push(last);
+				parts.push(part);
 			}
 		}
-		var s = "<ul><li>" + parts.join("</li>" + nl + "<li>") + "</li></ul>" + nl;
-		return "<div>" + s + "</div>" + nl;
+		return "<div>" + ("<ul><li>" + parts.join("</li>" + nl + "<li>") + "</li></ul>" + nl) + "</div>" + nl;
 	}
 	,addFixture: function(buf,result,name,isOk) {
 		if(utest_ui_common_ReportTools.skipResult(this,result.stats,isOk)) {
@@ -3817,58 +4978,44 @@ utest_ui_text_HtmlReport.prototype = {
 		} else if(result.stats.hasWarnings) {
 			buf.b += "WARNING ";
 		}
-		buf.b += "</span>";
-		buf.b += "<div class=\"fixturedetails\">";
-		buf.b += Std.string("<strong>" + name + "</strong>");
-		buf.b += ": ";
+		buf.b = (buf.b += "</span>") + "<div class=\"fixturedetails\">";
+		buf.b = (buf.b += Std.string("<strong>" + name + "</strong>")) + ": ";
 		this.resultNumbers(buf,result.stats);
 		var messages = [];
 		var _g = result.iterator();
 		while(_g.head != null) {
 			var val = _g.head.item;
 			_g.head = _g.head.next;
-			var assertation = val;
-			switch(assertation._hx_index) {
+			switch(val._hx_index) {
 			case 0:
-				var _g1 = assertation.pos;
 				break;
 			case 1:
-				var msg = assertation.msg;
-				var pos = assertation.pos;
-				messages.push("<strong>line " + pos.lineNumber + "</strong>: <em>" + StringTools.htmlEscape(msg) + "</em>");
+				messages.push("<strong>line " + val.pos.lineNumber + "</strong>: <em>" + StringTools.htmlEscape(val.msg) + "</em>");
 				break;
 			case 2:
-				var e = assertation.e;
-				var s = assertation.stack;
-				messages.push("<strong>error</strong>: <em>" + this.getErrorDescription(e) + "</em>\n<br/><strong>stack</strong>:" + this.getErrorStack(s,e));
+				var _g1 = val.e;
+				messages.push("<strong>error</strong>: <em>" + this.getErrorDescription(_g1) + "</em>\n<br/><strong>stack</strong>:" + this.getErrorStack(val.stack,_g1));
 				break;
 			case 3:
-				var e1 = assertation.e;
-				var s1 = assertation.stack;
-				messages.push("<strong>setup error</strong>: " + this.getErrorDescription(e1) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(s1,e1));
+				var _g2 = val.e;
+				messages.push("<strong>setup error</strong>: " + this.getErrorDescription(_g2) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(val.stack,_g2));
 				break;
 			case 4:
-				var e2 = assertation.e;
-				var s2 = assertation.stack;
-				messages.push("<strong>tear-down error</strong>: " + this.getErrorDescription(e2) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(s2,e2));
+				var _g3 = val.e;
+				messages.push("<strong>tear-down error</strong>: " + this.getErrorDescription(_g3) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(val.stack,_g3));
 				break;
 			case 5:
-				var _g2 = assertation.stack;
-				var missedAsyncs = assertation.missedAsyncs;
-				messages.push("<strong>missed async call(s)</strong>: " + missedAsyncs);
+				messages.push("<strong>missed async call(s)</strong>: " + val.missedAsyncs);
 				break;
 			case 6:
-				var e3 = assertation.e;
-				var s3 = assertation.stack;
-				messages.push("<strong>async error</strong>: " + this.getErrorDescription(e3) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(s3,e3));
+				var _g4 = val.e;
+				messages.push("<strong>async error</strong>: " + this.getErrorDescription(_g4) + "\n<br/><strong>stack</strong>:" + this.getErrorStack(val.stack,_g4));
 				break;
 			case 7:
-				var msg1 = assertation.msg;
-				messages.push(StringTools.htmlEscape(msg1));
+				messages.push(StringTools.htmlEscape(val.msg));
 				break;
 			case 8:
-				var reason = assertation.reason;
-				messages.push(StringTools.htmlEscape(reason));
+				messages.push(StringTools.htmlEscape(val.reason));
 				break;
 			}
 		}
@@ -3878,8 +5025,7 @@ utest_ui_text_HtmlReport.prototype = {
 			buf.b += Std.string(x);
 			buf.b += "</div>\n";
 		}
-		buf.b += "</div>\n";
-		buf.b += "</div></li>\n";
+		buf.b = (buf.b += "</div>\n") + "</div></li>\n";
 	}
 	,getErrorDescription: function(e) {
 		return Std.string(e);
@@ -3891,8 +5037,7 @@ utest_ui_text_HtmlReport.prototype = {
 		if(utest_ui_common_ReportTools.skipResult(this,result.stats,isOk)) {
 			return;
 		}
-		buf.b += "<li>";
-		buf.b += Std.string("<h2 class=\"classname\">" + name + "</h2>");
+		buf.b = (buf.b += "<li>") + Std.string("<h2 class=\"classname\">" + name + "</h2>");
 		this.blockNumbers(buf,result.stats);
 		buf.b += "<ul>\n";
 		var _g = 0;
@@ -3902,8 +5047,7 @@ utest_ui_text_HtmlReport.prototype = {
 			++_g;
 			this.addFixture(buf,result.get(mname),mname,isOk);
 		}
-		buf.b += "</ul>\n";
-		buf.b += "</li>\n";
+		buf.b = (buf.b += "</ul>\n") + "</li>\n";
 	}
 	,addPackages: function(buf,result,isOk) {
 		if(utest_ui_common_ReportTools.skipResult(this,result.stats,isOk)) {
@@ -3926,8 +5070,7 @@ utest_ui_text_HtmlReport.prototype = {
 		if(name == "" && result.classNames().length == 0) {
 			return;
 		}
-		buf.b += "<li>";
-		buf.b += Std.string("<h2>" + name + "</h2>");
+		buf.b = (buf.b += "<li>") + Std.string("<h2>" + name + "</h2>");
 		this.blockNumbers(buf,result.stats);
 		buf.b += "<ul>\n";
 		var _g = 0;
@@ -3937,17 +5080,15 @@ utest_ui_text_HtmlReport.prototype = {
 			++_g;
 			this.addClass(buf,result.getClass(cname),cname,isOk);
 		}
-		buf.b += "</ul>\n";
-		buf.b += "</li>\n";
+		buf.b = (buf.b += "</ul>\n") + "</li>\n";
 	}
 	,getTextResults: function() {
 		var newline = "\n";
 		var indents = function(count) {
 			var _g = [];
 			var _g1 = 0;
-			var _g2 = count;
-			while(_g1 < _g2) {
-				var i = _g1++;
+			while(_g1 < count) {
+				++_g1;
 				_g.push("  ");
 			}
 			return _g.join("");
@@ -4013,58 +5154,43 @@ utest_ui_text_HtmlReport.prototype = {
 					while(_g6.head != null) {
 						var val = _g6.head.item;
 						_g6.head = _g6.head.next;
-						var assertation = val;
-						switch(assertation._hx_index) {
+						switch(val._hx_index) {
 						case 0:
-							var _g7 = assertation.pos;
 							buf_b += ".";
 							break;
 						case 1:
-							var msg = assertation.msg;
-							var pos = assertation.pos;
 							buf_b += "F";
-							messages += indents(2) + "line: " + pos.lineNumber + ", " + msg + newline;
+							messages += indents(2) + "line: " + val.pos.lineNumber + ", " + val.msg + newline;
 							break;
 						case 2:
-							var e = assertation.e;
-							var s = assertation.stack;
 							buf_b += "E";
-							messages += indents(2) + Std.string(e) + dumpStack(s) + newline;
+							messages += indents(2) + Std.string(val.e) + dumpStack(val.stack) + newline;
 							break;
 						case 3:
-							var e1 = assertation.e;
-							var s1 = assertation.stack;
 							buf_b += "S";
-							messages += indents(2) + Std.string(e1) + dumpStack(s1) + newline;
+							messages += indents(2) + Std.string(val.e) + dumpStack(val.stack) + newline;
 							break;
 						case 4:
-							var e2 = assertation.e;
-							var s2 = assertation.stack;
 							buf_b += "T";
-							messages += indents(2) + Std.string(e2) + dumpStack(s2) + newline;
+							messages += indents(2) + Std.string(val.e) + dumpStack(val.stack) + newline;
 							break;
 						case 5:
-							var missedAsyncs = assertation.missedAsyncs;
-							var s3 = assertation.stack;
 							buf_b += "O";
-							messages += indents(2) + "missed async calls: " + missedAsyncs + dumpStack(s3) + newline;
+							messages += indents(2) + "missed async calls: " + val.missedAsyncs + dumpStack(val.stack) + newline;
 							break;
 						case 6:
-							var e3 = assertation.e;
-							var s4 = assertation.stack;
 							buf_b += "A";
-							messages += indents(2) + Std.string(e3) + dumpStack(s4) + newline;
+							messages += indents(2) + Std.string(val.e) + dumpStack(val.stack) + newline;
 							break;
 						case 7:
-							var msg1 = assertation.msg;
 							buf_b += "W";
-							messages += indents(2) + msg1 + newline;
+							messages += indents(2) + val.msg + newline;
 							break;
 						case 8:
-							var reason = assertation.reason;
+							var _g7 = val.reason;
 							buf_b += "I";
-							if(reason != null && reason != "") {
-								messages += indents(2) + ("With reason: " + reason) + newline;
+							if(_g7 != null && _g7 != "") {
+								messages += indents(2) + ("With reason: " + _g7) + newline;
 							}
 							break;
 						}
@@ -4081,8 +5207,7 @@ utest_ui_text_HtmlReport.prototype = {
 		if(!utest_ui_common_ReportTools.hasHeader(this,this.result.stats)) {
 			return "";
 		}
-		var end = HxOverrides.now() / 1000;
-		var time = ((end - this.startTime) * 1000 | 0) / 1000;
+		var time = ((HxOverrides.now() / 1000 - this.startTime) * 1000 | 0) / 1000;
 		var msg = "TEST OK";
 		if(this.result.stats.hasErrors) {
 			msg = "TEST ERRORS";
@@ -4103,7 +5228,7 @@ utest_ui_text_HtmlReport.prototype = {
 		if(this._traces == null || this._traces.length == 0) {
 			return "";
 		}
-		buf_b += "<div class=\"trace\"><h2>traces</h2><ol>";
+		buf_b = "<div class=\"trace\"><h2>traces</h2><ol>";
 		var _g = 0;
 		var _g1 = this._traces;
 		while(_g < _g1.length) {
@@ -4280,8 +5405,7 @@ utest_ui_text_PlainTextReport.prototype = {
 		if(!utest_ui_common_ReportTools.hasHeader(this,result.stats)) {
 			return;
 		}
-		var end = this.getTime();
-		var time = ((end - this.startTime) * 1000 | 0) / 1000;
+		var time = ((this.getTime() - this.startTime) * 1000 | 0) / 1000;
 		buf.b += Std.string("\nassertations: " + result.stats.assertations + this.newline);
 		buf.b += Std.string("successes: " + result.stats.successes + this.newline);
 		buf.b += Std.string("errors: " + result.stats.errors + this.newline);
@@ -4340,64 +5464,48 @@ utest_ui_text_PlainTextReport.prototype = {
 					while(_g6.head != null) {
 						var val = _g6.head.item;
 						_g6.head = _g6.head.next;
-						var assertation = val;
-						switch(assertation._hx_index) {
+						switch(val._hx_index) {
 						case 0:
-							var _g7 = assertation.pos;
 							buf.b += ".";
 							break;
 						case 1:
-							var msg = assertation.msg;
-							var pos = assertation.pos;
 							buf.b += "F";
-							messages += this.indents(2) + "line: " + pos.lineNumber + ", " + msg + this.newline;
+							messages += this.indents(2) + "line: " + val.pos.lineNumber + ", " + val.msg + this.newline;
 							break;
 						case 2:
-							var e = assertation.e;
-							var s = assertation.stack;
 							buf.b += "E";
-							messages += this.indents(2) + Std.string(e) + this.dumpStack(s) + this.newline;
+							messages += this.indents(2) + Std.string(val.e) + this.dumpStack(val.stack) + this.newline;
 							break;
 						case 3:
-							var e1 = assertation.e;
-							var s1 = assertation.stack;
 							buf.b += "S";
-							messages += this.indents(2) + Std.string(e1) + this.dumpStack(s1) + this.newline;
+							messages += this.indents(2) + Std.string(val.e) + this.dumpStack(val.stack) + this.newline;
 							break;
 						case 4:
-							var e2 = assertation.e;
-							var s2 = assertation.stack;
 							buf.b += "T";
-							messages += this.indents(2) + Std.string(e2) + this.dumpStack(s2) + this.newline;
+							messages += this.indents(2) + Std.string(val.e) + this.dumpStack(val.stack) + this.newline;
 							break;
 						case 5:
-							var missedAsyncs = assertation.missedAsyncs;
-							var s3 = assertation.stack;
 							buf.b += "O";
-							messages += this.indents(2) + "missed async calls: " + missedAsyncs + this.dumpStack(s3) + this.newline;
+							messages += this.indents(2) + "missed async calls: " + val.missedAsyncs + this.dumpStack(val.stack) + this.newline;
 							break;
 						case 6:
-							var e3 = assertation.e;
-							var s4 = assertation.stack;
 							buf.b += "A";
-							messages += this.indents(2) + Std.string(e3) + this.dumpStack(s4) + this.newline;
+							messages += this.indents(2) + Std.string(val.e) + this.dumpStack(val.stack) + this.newline;
 							break;
 						case 7:
-							var msg1 = assertation.msg;
 							buf.b += "W";
-							messages += this.indents(2) + msg1 + this.newline;
+							messages += this.indents(2) + val.msg + this.newline;
 							break;
 						case 8:
-							var reason = assertation.reason;
+							var _g7 = val.reason;
 							buf.b += "I";
-							if(reason != null && reason != "") {
-								messages += this.indents(2) + ("With reason: " + reason) + this.newline;
+							if(_g7 != null && _g7 != "") {
+								messages += this.indents(2) + ("With reason: " + _g7) + this.newline;
 							}
 							break;
 						}
 					}
-					buf.b += Std.string(this.newline);
-					buf.b += messages == null ? "null" : "" + messages;
+					buf.b = (buf.b += Std.string(this.newline)) + (messages == null ? "null" : "" + messages);
 				}
 			}
 		}
@@ -4509,6 +5617,24 @@ var Bool = Boolean;
 var Class = { };
 var Enum = { };
 js_Boot.__toStr = ({ }).toString;
+Xml.Element = 0;
+Xml.PCData = 1;
+Xml.CData = 2;
+Xml.Comment = 3;
+Xml.DocType = 4;
+Xml.ProcessingInstruction = 5;
+Xml.Document = 6;
+haxe_xml_Parser.escapes = (function($this) {
+	var $r;
+	var h = new haxe_ds_StringMap();
+	h.h["lt"] = "<";
+	h.h["gt"] = ">";
+	h.h["amp"] = "&";
+	h.h["quot"] = "\"";
+	h.h["apos"] = "'";
+	$r = h;
+	return $r;
+}(this));
 utest_TestHandler.POLLING_TIME = 10;
 utest_AccessoryName.SETUP_NAME = "setup";
 utest_AccessoryName.SETUP_CLASS_NAME = "setupClass";

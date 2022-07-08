@@ -1,5 +1,6 @@
 package graphics;
 
+import js.html.CanvasElement;
 import haxe.ds.Map;
 
 using Std;
@@ -40,7 +41,7 @@ enum GColor {
 }
 
 enum GLayer {
-	Layer(items:GItems, placement:GPoint, size:GPoint, opacity:GValue, rotation:GValue, defaultFill:GFill, defaultStroke:GStroke);
+	Layer(items:GItems, placement:GPoint, size:GPoint, opacity:GValue, rotation:GValue);
 }
 
 enum GValue {
@@ -53,6 +54,8 @@ enum GPoint {
 	APoint(v:Map<Float, {x:Float, y:Float}>);
 }
 
+typedef GSize = {w:Float, h:Float};
+
 enum GPathElement {
 	M(x:Float, y:Float);
 	L(x:Float, y:Float);
@@ -62,24 +65,22 @@ enum GPathElement {
 
 typedef GPath = Array<GPathElement>;
 
-interface GSurface<T> {
+interface GSurface {
 	function addLayer(layer:GLayer):Void;
 	function addItem(item:GItem):Void;
+}
+
+interface GSurfaceRenderer<T> extends GSurface {
 	function render():T;
 }
 
 class GTools {
-	static public function getBoundingBox(items:GItems, ?defaultStroke:GStroke):GRect {
-		var halfStrokeWidth = switch defaultStroke {
-			case null: 0;
-			case Stroke(c, w): w / 2;
-			default: 0;
-		}
-
+	static public function getBoundingBox(items:GItems):GRect {
 		var minX:Float = null;
 		var minY:Float = null;
 		var maxX:Float = null;
 		var maxY:Float = null;
+		var halfStrokeWidth = .0;
 
 		for (item in items) {
 			var ix:Float = null;
@@ -166,6 +167,10 @@ class GTools {
 		return ret;
 	}
 
+	static public function getBoundingSize(rect:GRect):GSize {
+		return {w: rect.w - rect.x, h: rect.h - rect.y};
+	}
+
 	static public function moveItems(items:GItems, mx:Float, my:Float):GItems {
 		final newItems = items.map(item -> {
 			return switch item {
@@ -202,65 +207,65 @@ class GTools {
 
 typedef GRect = {x:Float, y:Float, w:Float, h:Float}
 
-class SvgSurface implements GSurface<String> {
-	var svg:Xml;
+class BaseSurface {
 	final layers:Array<GLayer> = [];
 	var layerItems:GItems;
 
-	public function new(?firstLayer:GLayer) {
-		if (firstLayer != null) {
-			this.layerItems = firstLayer.extract(Layer(items, p, s, o, r, fill, st) => items);
-			this.layers = [firstLayer];
-		} else {
-			this.layerItems = [];
-			this.layers = [
-				Layer(layerItems, null, null, null, null, GFill.Solid(GColor.Blue), GStroke.Stroke(GColor.Red, 5))
-			];
-		}
+	public function new() {
+		this.layerItems = [];
+		this.layers = [Layer(layerItems, null, null, null, null)];
 	}
 
 	public function addLayer(layer:GLayer) {
 		this.layers.push(layer);
-		this.layerItems = layer.extract(Layer(items, p, s, o, r, fi, st) => items);
+		this.layerItems = layer.extract(Layer(items, p, s, o, r) => items);
 	}
 
 	public function addItem(item:GItem) {
 		this.layerItems.push(item);
 	}
 
-	public function render():String {
+	public function addItems(items:Array<GItem>) {
+		for (item in items)
+			this.layerItems.push(item);
+	}
+}
+
+class SvgSurface extends BaseSurface implements GSurfaceRenderer<Xml> {
+	var svg:Xml;
+
+	public function new() {
+		super();
+	}
+
+	public function render():Xml {
 		final boundingRects:Array<GRect> = this.layers.map(layer -> {
-			var layerStroke:GStroke = null;
 			final items:GItems = switch layer {
-				case Layer(items, p, s, o, r, fill, st):
-					layerStroke = st;
+				case Layer(items, p, s, o, r):
 					items;
 			}
-			return items.getBoundingBox(layerStroke);
+			return items.getBoundingBox();
 		});
 		final boundingRect:GRect = GTools.getBoundingRect(boundingRects);
-		this.svg = Xml.parse('<svg width="${boundingRect.w - boundingRect.x}" height="${boundingRect.h - boundingRect.y}"></svg>').firstElement();
+		final boundingSize = GTools.getBoundingSize(boundingRect);
+
+		this.svg = Xml.parse('<svg width="${boundingSize.w}" height="${boundingSize.h}"></svg>').firstElement();
+
 		for (layer in layers) {
 			final eLayer = Xml.createElement('g');
 			this.svg.addChild(eLayer);
-			final items = layer.extract(Layer(items, p, s, o, r, fi, st) => items);
-			final layerFill:GFill = layer.extract(Layer(items, p, s, o, r, fi, st) => fi);
-			final layerFillColor:GColor = switch layerFill {
-				case null: null;
-				case Solid(c): c;
-				default: null;
-			}
+			final items = layer.extract(Layer(items, p, s, o, r) => items);
 
-			final layerStroke:GStroke = layer.extract(Layer(items, p, s, o, r, fi, st) => st);
-			final layerStrokeColor:GColor = layerStroke.extract(Stroke(color, width) => color);
-			final layerStrokeWidth:Float = layerStroke.extract(Stroke(color, width) => width);
+			// final layerStroke:GStroke = layer.extract(Layer(items, p, s, o, r) => st);
+			// final layerStrokeColor:GColor = layerStroke.extract(Stroke(color, width) => color);
+			// final layerStrokeWidth:Float = layerStroke.extract(Stroke(color, width) => width);
 
-			if (layerFillColor != null)
-				eLayer.set('fill', layerFillColor.getColor());
-			if (layerStrokeColor != null)
-				eLayer.set('stroke', layerStrokeColor.getColor());
-			if (layerStrokeWidth != null)
-				eLayer.set('stroke-width', layerStrokeWidth.string());
+			// if (layerFillColor != null)
+			// 	eLayer.set('fill', layerFillColor.getColor());
+			// if (layerStrokeColor != null)
+			// 	eLayer.set('stroke', layerStrokeColor.getColor());
+			// if (layerStrokeWidth != null)
+			// 	eLayer.set('stroke-width', layerStrokeWidth.string());
 
 			final movedItems = items.moveItems(-boundingRect.x, -boundingRect.y);
 
@@ -339,6 +344,97 @@ class SvgSurface implements GSurface<String> {
 				}
 			}
 		}
-		return this.svg.toString();
+		return this.svg;
+	}
+}
+
+class CanvasSurface extends BaseSurface implements GSurfaceRenderer<CanvasElement> {
+	public function new() {
+		super();
+	}
+
+	public function render():CanvasElement {
+		final boundingRects:Array<GRect> = this.layers.map(layer -> {
+			// var layerStroke:GStroke = null;
+			final items:GItems = switch layer {
+				case Layer(items, p, s, o, r):
+					items;
+			}
+			return items.getBoundingBox();
+		});
+		final boundingRect:GRect = GTools.getBoundingRect(boundingRects);
+		final boundingSize = GTools.getBoundingSize(boundingRect);
+
+		final canvas = js.Browser.document.createCanvasElement();
+		canvas.setAttribute('width', boundingSize.w.string());
+		canvas.setAttribute('height', boundingSize.h.string());
+		canvas.style.width = boundingSize.w + 'px';
+		canvas.style.height = boundingSize.h + 'px';
+
+		final ctx = canvas.getContext2d();
+
+		for (layer in layers) {
+			// this.svg.addChild(eLayer);
+			final items = layer.extract(Layer(items, p, s, o, r) => items);
+
+			final movedItems = items.moveItems(-boundingRect.x, -boundingRect.y);
+			for (item in movedItems) {
+				switch item {
+					case Line(x1, y1, x2, y2, s):
+						ctx.beginPath();
+						ctx.moveTo(x1, y1);
+						ctx.lineTo(x2, y2);
+						switch s {
+							case null:
+							case Stroke(c, w):
+								ctx.strokeStyle = c.getColor();
+								ctx.lineWidth = w;
+								ctx.stroke();
+							case None:
+							default:
+						}
+					case Rect(x, y, w, h, f, s):
+						ctx.beginPath();
+						ctx.rect(x, y, w, h);
+						switch f {
+							case Solid(c):
+								ctx.fillStyle = c.getColor();
+								ctx.fill();
+							case None:
+						}
+						switch s {
+							case null:
+							case Stroke(c, width):
+								ctx.strokeStyle = c.getColor();
+								ctx.lineWidth = width;
+								ctx.stroke();
+							case None:
+						}
+
+					case Ellipse(x, y, w, h, f, s):
+						ctx.beginPath();
+						ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, Math.PI / 4, 0, 2 * Math.PI);
+						switch f {
+							case Solid(c):
+								trace(c.getColor());
+								ctx.fillStyle = c.getColor();
+								ctx.fill();
+							case None:
+						}
+						switch s {
+							case null:
+							case Stroke(c, width):
+								ctx.strokeStyle = c.getColor();
+								ctx.lineWidth = width;
+								ctx.stroke();
+							case None:
+						}
+
+					default:
+				}
+			}
+		}
+
+		return canvas;
 	}
 }

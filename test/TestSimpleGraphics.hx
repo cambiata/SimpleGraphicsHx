@@ -1,3 +1,7 @@
+import js.html.CanvasElement;
+import js.html.Element;
+import js.Browser;
+
 using graphics.SimpleGraphics.GTools;
 using tools.ObjectTools;
 
@@ -31,14 +35,41 @@ class TestA implements utest.ITest {
 	// 	trace(bb);
 	// }
 
+	function test1() {
+		// output();
+	}
+
 	function testLayer() {
-		final svg:SvgSurface = new SvgSurface();
-		svg.addItem(Rect(0, 0, 200, 100, null, null));
-		svg.addItem(Ellipse(50, 0, 100, 100, Solid(Yellow), None));
-		svg.addItem(Line(0, 0, 200, 100, Stroke(Purple, 5)));
-		final svgString = svg.render();
+		final items = [
+			Ellipse(-50, -50, 100, 100, Solid(Yellow), None),
+			Line(0, 0, 100, -100, Stroke(Purple, 5)),
+			Rect(-100, -100, 100, 100, GFill.Solid(Red), GStroke.Stroke(Blue, 10)),
+			Rect(0, 0, 100, 100, GFill.Solid(Red), GStroke.Stroke(Blue, 10)),
+		];
+
+		final sSurface:SvgSurface = new SvgSurface();
+		sSurface.addItems(items);
+		final svg = sSurface.render();
+
+		final cSurface = new CanvasSurface();
+		cSurface.addItems(items);
+		final canvas = cSurface.render();
+
+		outputJs(svg, canvas);
+
 		#if sys
 		sys.io.File.saveContent('test.svg', svgString);
 		#end
+	}
+
+	function outputJs(svgXml:Xml, canvas:CanvasElement) {
+		final outputEl = js.Browser.document.getElementById('output');
+		final row = Browser.document.createDivElement();
+		row.classList.add('row');
+		row.appendChild(canvas);
+		final svgDiv = Browser.document.createDivElement();
+		svgDiv.innerHTML = svgXml.toString();
+		row.appendChild(svgDiv);
+		outputEl.appendChild(row);
 	}
 }

@@ -6,8 +6,8 @@
 -m TestSimpleGraphics
 -L utest
 
---interp
+# --interp
 
-# -js public/index.js
+-js public/index.js
 # --cmd node test.js
 
