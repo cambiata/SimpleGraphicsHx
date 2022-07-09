@@ -284,20 +284,18 @@ var TestA = function() {
 TestA.__name__ = "TestA";
 TestA.__interfaces__ = [utest_ITest];
 TestA.prototype = {
-	test1: function() {
-	}
-	,testLayer: function() {
+	testLayer: function() {
 		var items = [graphics_GItem.Ellipse(-50,-50,100,100,graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.None),graphics_GItem.Line(0,0,100,-100,graphics_GStroke.Stroke(graphics_GColor.Purple,5)),graphics_GItem.Rect(-100,-100,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Rect(0,0,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10))];
 		var sSurface = new graphics_SvgSurface();
 		sSurface.addItems(items);
 		var svg = sSurface.render();
 		var cSurface = new graphics_CanvasSurface();
 		cSurface.addItems(items);
-		this.outputJs(svg,cSurface.render());
+		this.outputToBrowser(svg,cSurface.render());
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 37, className : "TestA", methodName : "testLayer"});
 	}
-	,outputJs: function(svgXml,canvas) {
+	,outputToBrowser: function(svgXml,canvas) {
 		var outputEl = window.document.getElementById("output");
-		haxe_Log.trace(outputEl,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 67, className : "TestA", methodName : "outputJs"});
 		var row = window.document.createElement("div");
 		row.classList.add("row");
 		row.appendChild(canvas);
@@ -313,23 +311,10 @@ TestA.prototype = {
 			_gthis.testLayer();
 			return utest_Async.getResolved();
 		}});
-		init.tests.push({ name : "test1", dependencies : [], execute : function() {
-			_gthis.test1();
-			return utest_Async.getResolved();
-		}});
 		return init;
 	}
 	,__class__: TestA
 };
-function TestSimpleGraphics_testPair() {
-	var _g = tools_PairIterator.toPairIterator([{ x : 3},{ x : 8},{ x : 11}],{ x : 20}).keyValueIterator();
-	while(_g.hasNext()) {
-		var _g1 = _g.next();
-		var left = _g1.key;
-		var right = _g1.value;
-		haxe_Log.trace("left: " + Std.string(left) + ", right: " + Std.string(right) + ", x-difference: " + (right.x - left.x),{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 16, className : "_TestSimpleGraphics.TestSimpleGraphics_Fields_", methodName : "testPair"});
-	}
-}
 function TestSimpleGraphics_main() {
 	utest_UTest.run([new TestA()]);
 }
@@ -587,8 +572,10 @@ var graphics_GColor = $hxEnums["graphics.GColor"] = { __ename__:"graphics.GColor
 	,Yellow: {_hx_name:"Yellow",_hx_index:4,__enum__:"graphics.GColor",toString:$estr}
 	,Purple: {_hx_name:"Purple",_hx_index:5,__enum__:"graphics.GColor",toString:$estr}
 	,Gray: {_hx_name:"Gray",_hx_index:6,__enum__:"graphics.GColor",toString:$estr}
+	,White: {_hx_name:"White",_hx_index:7,__enum__:"graphics.GColor",toString:$estr}
+	,Black: {_hx_name:"Black",_hx_index:8,__enum__:"graphics.GColor",toString:$estr}
 };
-graphics_GColor.__constructs__ = [graphics_GColor.RGBA,graphics_GColor.Red,graphics_GColor.Blue,graphics_GColor.Green,graphics_GColor.Yellow,graphics_GColor.Purple,graphics_GColor.Gray];
+graphics_GColor.__constructs__ = [graphics_GColor.RGBA,graphics_GColor.Red,graphics_GColor.Blue,graphics_GColor.Green,graphics_GColor.Yellow,graphics_GColor.Purple,graphics_GColor.Gray,graphics_GColor.White,graphics_GColor.Black];
 var graphics_GLayer = $hxEnums["graphics.GLayer"] = { __ename__:"graphics.GLayer",__constructs__:null
 	,Layer: ($_=function(items,placement,size,opacity,rotation) { return {_hx_index:0,items:items,placement:placement,size:size,opacity:opacity,rotation:rotation,__enum__:"graphics.GLayer",toString:$estr}; },$_._hx_name="Layer",$_.__params__ = ["items","placement","size","opacity","rotation"],$_)
 };
@@ -633,7 +620,6 @@ graphics_GTools.getBoundingBox = function(items) {
 	var minY = null;
 	var maxX = null;
 	var maxY = null;
-	var halfStrokeWidth = .0;
 	var _g = 0;
 	while(_g < items.length) {
 		var item = items[_g];
@@ -649,15 +635,11 @@ graphics_GTools.getBoundingBox = function(items) {
 			var _g3 = item.x2;
 			var _g4 = item.y2;
 			var _g5 = item.s;
-			if(_g5 != null) {
-				if(_g5._hx_index == 1) {
-					halfStrokeWidth = _g5.width / 2;
-				}
-			}
+			var halfStrokeWidth = _g5 == null ? 0 : _g5._hx_index == 1 ? _g5.width / 2 : 0;
 			ix = Math.min(_g1,_g3) - halfStrokeWidth;
 			iy = Math.min(_g2,_g4) - halfStrokeWidth;
-			ix2 = Math.max(_g1,_g3) + halfStrokeWidth * 2;
-			iy2 = Math.max(_g2,_g4) + halfStrokeWidth * 2;
+			ix2 = Math.max(_g1,_g3) + halfStrokeWidth;
+			iy2 = Math.max(_g2,_g4) + halfStrokeWidth;
 			break;
 		case 1:
 			var _g6 = item.x;
@@ -665,15 +647,11 @@ graphics_GTools.getBoundingBox = function(items) {
 			var _g8 = item.w;
 			var _g9 = item.h;
 			var _g10 = item.stroke;
-			if(_g10 != null) {
-				if(_g10._hx_index == 1) {
-					halfStrokeWidth = _g10.width / 2;
-				}
-			}
-			ix = Math.min(_g6,_g6 + _g8) - halfStrokeWidth;
-			iy = Math.min(_g7,_g6 + _g9) - halfStrokeWidth;
-			ix2 = Math.max(_g6,_g6 + _g8) + halfStrokeWidth * 2;
-			iy2 = Math.max(_g7,_g7 + _g9) + halfStrokeWidth * 2;
+			var halfStrokeWidth1 = _g10 == null ? 0 : _g10._hx_index == 1 ? _g10.width / 2 : 0;
+			ix = Math.min(_g6,_g6 + _g8) - halfStrokeWidth1;
+			iy = Math.min(_g7,_g6 + _g9) - halfStrokeWidth1;
+			ix2 = Math.max(_g6,_g6 + _g8) + halfStrokeWidth1;
+			iy2 = Math.max(_g7,_g7 + _g9) + halfStrokeWidth1;
 			break;
 		case 2:
 			var _g11 = item.x;
@@ -681,15 +659,11 @@ graphics_GTools.getBoundingBox = function(items) {
 			var _g13 = item.w;
 			var _g14 = item.h;
 			var _g15 = item.stroke;
-			if(_g15 != null) {
-				if(_g15._hx_index == 1) {
-					halfStrokeWidth = _g15.width / 2;
-				}
-			}
-			ix = Math.min(_g11,_g11 + _g13) - halfStrokeWidth;
-			iy = Math.min(_g12,_g11 + _g14) - halfStrokeWidth;
-			ix2 = Math.max(_g11,_g11 + _g13) + halfStrokeWidth * 2;
-			iy2 = Math.max(_g12,_g12 + _g14) + halfStrokeWidth * 2;
+			var halfStrokeWidth2 = _g15 == null ? 0 : _g15._hx_index == 1 ? _g15.width / 2 : 0;
+			ix = Math.min(_g11,_g11 + _g13) - halfStrokeWidth2;
+			iy = Math.min(_g12,_g11 + _g14) - halfStrokeWidth2;
+			ix2 = Math.max(_g11,_g11 + _g13) + halfStrokeWidth2;
+			iy2 = Math.max(_g12,_g12 + _g14) + halfStrokeWidth2;
 			break;
 		case 3:
 			var _g16 = item.p;
@@ -1081,7 +1055,7 @@ graphics_CanvasSurface.prototype = $extend(graphics_BaseSurface.prototype,{
 						break;
 					case 1:
 						var _g10 = _g8.c;
-						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 419, className : "graphics.CanvasSurface", methodName : "render"});
+						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 408, className : "graphics.CanvasSurface", methodName : "render"});
 						ctx.fillStyle = graphics_GTools.getColor(_g10);
 						ctx.fill();
 						break;
@@ -2444,54 +2418,6 @@ function tools_ArrayItems_first(a) {
 }
 var tools_EnumTools = function() { };
 tools_EnumTools.__name__ = "tools.EnumTools";
-var tools_PairIterator = function(a,tail,includeNullAsTail) {
-	if(includeNullAsTail == null) {
-		includeNullAsTail = false;
-	}
-	this._index = 0;
-	this.length = 0;
-	this.tail = null;
-	this.a = a;
-	this.tail = tail;
-	this.length = a.length;
-	if(tail != null || includeNullAsTail) {
-		this.length++;
-	}
-	if(this.length < 2) {
-		throw haxe_Exception.thrown("PairIterator error: Can not handle less than two items. A \"tail\" item can be added to the constructor, or \"includeNullAsTail\" can be set to include null as the rightmost item.");
-	}
-};
-tools_PairIterator.__name__ = "tools.PairIterator";
-tools_PairIterator.toPairIterator = function(a,tail,includeNullAsTail) {
-	if(includeNullAsTail == null) {
-		includeNullAsTail = false;
-	}
-	return new tools_PairIterator(a,tail,includeNullAsTail);
-};
-tools_PairIterator.prototype = {
-	a: null
-	,tail: null
-	,length: null
-	,_index: null
-	,hasNext: function() {
-		return this._index < this.length - 1;
-	}
-	,next: function() {
-		if(this._index < this.a.length - 1) {
-			return { key : this.a[this._index], value : this.a[++this._index]};
-		} else {
-			return { key : this.a[this._index++], value : this.tail};
-		}
-	}
-	,get_index: function() {
-		return this._index - 1;
-	}
-	,keyValueIterator: function() {
-		return { hasNext : $bind(this,this.hasNext), next : $bind(this,this.next)};
-	}
-	,__class__: tools_PairIterator
-	,__properties__: {get_index:"get_index"}
-};
 var utest_Assert = function() { };
 utest_Assert.__name__ = "utest.Assert";
 utest_Assert.processResult = function(cond,getMessage,pos) {

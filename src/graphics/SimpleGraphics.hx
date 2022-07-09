@@ -38,6 +38,8 @@ enum GColor {
 	Yellow;
 	Purple;
 	Gray;
+	White;
+	Black;
 }
 
 enum GLayer {
@@ -80,7 +82,6 @@ class GTools {
 		var minY:Float = null;
 		var maxX:Float = null;
 		var maxY:Float = null;
-		var halfStrokeWidth = .0;
 
 		for (item in items) {
 			var ix:Float = null;
@@ -89,28 +90,28 @@ class GTools {
 			var iy2:Float = null;
 			switch item {
 				case Line(x1, y1, x2, y2, s):
-					halfStrokeWidth = switch s {
-						case null: halfStrokeWidth;
+					final halfStrokeWidth = switch s {
+						case null: 0;
 						case Stroke(c, w): w / 2;
-						default: halfStrokeWidth;
+						default: 0;
 					}
 
 					ix = x1.min(x2) - halfStrokeWidth;
 					iy = y1.min(y2) - halfStrokeWidth;
-					ix2 = x1.max(x2) + halfStrokeWidth * 2;
-					iy2 = y1.max(y2) + halfStrokeWidth * 2;
+					ix2 = x1.max(x2) + halfStrokeWidth;
+					iy2 = y1.max(y2) + halfStrokeWidth;
 
 				case Rect(x, y, w, h, f, s) | Ellipse(x, y, w, h, f, s):
-					halfStrokeWidth = switch s {
-						case null: halfStrokeWidth;
+					final halfStrokeWidth = switch s {
+						case null: 0;
 						case Stroke(c, w): w / 2;
-						default: halfStrokeWidth;
+						default: 0;
 					}
 
 					ix = x.min(x + w) - halfStrokeWidth;
 					iy = y.min(x + h) - halfStrokeWidth;
-					ix2 = x.max(x + w) + halfStrokeWidth * 2;
-					iy2 = y.max(y + h) + halfStrokeWidth * 2;
+					ix2 = x.max(x + w) + halfStrokeWidth;
+					iy2 = y.max(y + h) + halfStrokeWidth;
 
 				case Path(path, f, s):
 					for (pitem in path) {
@@ -255,18 +256,6 @@ class SvgSurface extends BaseSurface implements GSurfaceRenderer<Xml> {
 			final eLayer = Xml.createElement('g');
 			this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
-
-			// final layerStroke:GStroke = layer.extract(Layer(items, p, s, o, r) => st);
-			// final layerStrokeColor:GColor = layerStroke.extract(Stroke(color, width) => color);
-			// final layerStrokeWidth:Float = layerStroke.extract(Stroke(color, width) => width);
-
-			// if (layerFillColor != null)
-			// 	eLayer.set('fill', layerFillColor.getColor());
-			// if (layerStrokeColor != null)
-			// 	eLayer.set('stroke', layerStrokeColor.getColor());
-			// if (layerStrokeWidth != null)
-			// 	eLayer.set('stroke-width', layerStrokeWidth.string());
-
 			final movedItems = items.moveItems(-boundingRect.x, -boundingRect.y);
 
 			for (item in movedItems) {
