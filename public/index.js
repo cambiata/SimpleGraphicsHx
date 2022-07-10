@@ -284,7 +284,10 @@ var TestA = function() {
 TestA.__name__ = "TestA";
 TestA.__interfaces__ = [utest_ITest];
 TestA.prototype = {
-	testLayer: function() {
+	testPath: function() {
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 18, className : "TestA", methodName : "testPath"});
+	}
+	,testLayer: function() {
 		var items = [graphics_GItem.Ellipse(-50,-50,100,100,graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.None),graphics_GItem.Line(0,0,100,-100,graphics_GStroke.Stroke(graphics_GColor.Purple,5)),graphics_GItem.Rect(-100,-100,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Rect(0,0,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10))];
 		var sSurface = new graphics_SvgSurface();
 		sSurface.addItems(items);
@@ -292,7 +295,7 @@ TestA.prototype = {
 		var cSurface = new graphics_CanvasSurface();
 		cSurface.addItems(items);
 		this.outputToBrowser(svg,cSurface.render());
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 37, className : "TestA", methodName : "testLayer"});
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 46, className : "TestA", methodName : "testLayer"});
 	}
 	,outputToBrowser: function(svgXml,canvas) {
 		var outputEl = window.document.getElementById("output");
@@ -307,6 +310,10 @@ TestA.prototype = {
 	,__initializeUtest__: function() {
 		var _gthis = this;
 		var init = { tests : [], dependencies : [], accessories : { }};
+		init.tests.push({ name : "testPath", dependencies : [], execute : function() {
+			_gthis.testPath();
+			return utest_Async.getResolved();
+		}});
 		init.tests.push({ name : "testLayer", dependencies : [], execute : function() {
 			_gthis.testLayer();
 			return utest_Async.getResolved();
@@ -597,6 +604,14 @@ var graphics_GPathElement = $hxEnums["graphics.GPathElement"] = { __ename__:"gra
 	,Z: {_hx_name:"Z",_hx_index:3,__enum__:"graphics.GPathElement",toString:$estr}
 };
 graphics_GPathElement.__constructs__ = [graphics_GPathElement.M,graphics_GPathElement.L,graphics_GPathElement.C,graphics_GPathElement.Z];
+var graphics_PathStringOrGPath = {};
+graphics_PathStringOrGPath._new = function(path) {
+	return path;
+};
+graphics_PathStringOrGPath.fromString = function(pathString) {
+	haxe_Log.trace("create path from " + pathString,{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 80, className : "graphics._SimpleGraphics.PathStringOrGPath_Impl_", methodName : "fromString"});
+	return graphics_PathStringOrGPath._new([]);
+};
 var graphics_GSurface = function() { };
 graphics_GSurface.__name__ = "graphics.GSurface";
 graphics_GSurface.__isInterface__ = true;
@@ -666,13 +681,20 @@ graphics_GTools.getBoundingBox = function(items) {
 			iy2 = Math.max(_g12,_g12 + _g14) + halfStrokeWidth2;
 			break;
 		case 3:
-			var _g16 = item.p;
-			var _g17 = 0;
-			while(_g17 < _g16.length) {
-				var pitem = _g16[_g17];
-				++_g17;
+			var _g_current = 0;
+			var _g_array = item.p;
+			while(_g_current < _g_array.length) {
+				var pitem = _g_array[_g_current++];
 				switch(pitem._hx_index) {
 				case 0:
+					var _g16 = pitem.x;
+					var _g17 = pitem.y;
+					ix = _g16;
+					iy = _g17;
+					ix2 = _g16;
+					iy2 = _g17;
+					break;
+				case 1:
 					var _g18 = pitem.x;
 					var _g19 = pitem.y;
 					ix = _g18;
@@ -680,25 +702,17 @@ graphics_GTools.getBoundingBox = function(items) {
 					ix2 = _g18;
 					iy2 = _g19;
 					break;
-				case 1:
-					var _g20 = pitem.x;
-					var _g21 = pitem.y;
-					ix = _g20;
-					iy = _g21;
-					ix2 = _g20;
-					iy2 = _g21;
-					break;
 				case 2:
-					var _g22 = pitem.x1;
-					var _g23 = pitem.y1;
-					var _g24 = pitem.x2;
-					var _g25 = pitem.y2;
-					var _g26 = pitem.x;
-					var _g27 = pitem.y;
-					ix = Math.min(_g22,Math.min(_g24,_g26));
-					iy = Math.min(_g23,Math.min(_g25,_g27));
-					ix2 = Math.max(_g22,Math.max(_g24,_g26));
-					iy2 = Math.max(_g23,Math.max(_g25,_g27));
+					var _g20 = pitem.x1;
+					var _g21 = pitem.y1;
+					var _g22 = pitem.x2;
+					var _g23 = pitem.y2;
+					var _g24 = pitem.x;
+					var _g25 = pitem.y;
+					ix = Math.min(_g20,Math.min(_g22,_g24));
+					iy = Math.min(_g21,Math.min(_g23,_g25));
+					ix2 = Math.max(_g20,Math.max(_g22,_g24));
+					iy2 = Math.max(_g21,Math.max(_g23,_g25));
 					break;
 				case 3:
 					break;
@@ -706,12 +720,12 @@ graphics_GTools.getBoundingBox = function(items) {
 			}
 			break;
 		case 4:
-			var _g28 = item.x;
-			var _g29 = item.y;
-			ix = _g28;
-			iy = _g29;
-			ix2 = _g28;
-			iy2 = _g29;
+			var _g26 = item.x;
+			var _g27 = item.y;
+			ix = _g26;
+			iy = _g27;
+			ix2 = _g26;
+			iy2 = _g27;
 			break;
 		}
 		if(ix != null) {
@@ -1055,7 +1069,7 @@ graphics_CanvasSurface.prototype = $extend(graphics_BaseSurface.prototype,{
 						break;
 					case 1:
 						var _g10 = _g8.c;
-						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 408, className : "graphics.CanvasSurface", methodName : "render"});
+						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 424, className : "graphics.CanvasSurface", methodName : "render"});
 						ctx.fillStyle = graphics_GTools.getColor(_g10);
 						ctx.fill();
 						break;
