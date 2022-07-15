@@ -97,7 +97,6 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.Ca
 					case Path(path, f, s):
 						ctx.beginPath();
 						var pathString:String = path.toString();
-						trace(pathString);
 						var p = new Path2D(pathString);
 
 						switch f {

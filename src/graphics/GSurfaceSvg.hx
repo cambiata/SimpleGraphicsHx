@@ -130,7 +130,6 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						item.set('d', pathD);
 
 						eLayer.addChild(item);
-						trace(pathD);
 					default:
 				}
 			}
