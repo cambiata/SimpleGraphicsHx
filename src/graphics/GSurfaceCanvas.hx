@@ -1,31 +1,34 @@
 package graphics;
 
+import js.html.Path2D;
 import graphics.GSurface;
 import graphics.GCore;
 import graphics.GTools;
 import graphics.GItems;
-import js.html.CanvasElement;
 
 using graphics.GTools;
 using tools.EnumTools;
 using Std;
 
-class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<CanvasElement> {
+#if js
+class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.CanvasElement> {
 	public function new() {
 		super();
 	}
 
-	public function render():CanvasElement {
-		final boundingRects:Array<GRect> = this.layers.map(layer -> {
+	public function render():js.html.CanvasElement {
+		final layerAreas:Array<GArea> = this.layers.map(layer -> {
 			// var layerStroke:GStroke = null;
 			final items:GItems = switch layer {
 				case Layer(items, p, s, o, r):
 					items;
 			}
-			return items.getBoundingBox();
+			return items.getBoundingArea();
 		});
-		final boundingRect:GRect = GTools.getBoundingRect(boundingRects);
-		final boundingSize = GTools.getBoundingSize(boundingRect);
+
+		final boundingArea:GArea = GArea.combineAreas(layerAreas);
+		final boundingSize:GSize = boundingArea.getSize();
+		final movePoint = boundingArea.getXY();
 
 		final canvas = js.Browser.document.createCanvasElement();
 		canvas.setAttribute('width', boundingSize.w.string());
@@ -39,7 +42,7 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<CanvasElem
 			// this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
 
-			final movedItems = items.moveItems(-boundingRect.x, -boundingRect.y);
+			final movedItems = items.move(-movePoint.x, -movePoint.y);
 			for (item in movedItems) {
 				switch item {
 					case Line(x1, y1, x2, y2, s):
@@ -91,12 +94,42 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<CanvasElem
 								ctx.stroke();
 							case None:
 						}
+					case Path(path, f, s):
+						ctx.beginPath();
+						var pathString:String = path.toString();
+						trace(pathString);
+						var p = new Path2D(pathString);
 
+						switch f {
+							case Solid(c):
+								trace(c.getColor());
+								ctx.fillStyle = c.getColor();
+								ctx.fill(p);
+							case None:
+						}
+						switch s {
+							case null:
+							case Stroke(c, width):
+								ctx.strokeStyle = c.getColor();
+								ctx.lineWidth = width;
+								ctx.stroke(p);
+							case None:
+						}
 					default:
 				}
 			}
 		}
-
 		return canvas;
 	}
 }
+#end
+
+#if !js
+class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<Void> {
+	public function new() {
+		super();
+	}
+
+	public function render():Void {}
+}
+#end

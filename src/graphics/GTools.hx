@@ -28,6 +28,8 @@ class GTools {
 	}
 
 	static public function getBoundingSize(rect:GRect):GSize {
+		trace(rect);
+
 		return {w: rect.w - rect.x, h: rect.h - rect.y};
 	}
 

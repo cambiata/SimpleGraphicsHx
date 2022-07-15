@@ -17,15 +17,17 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 	}
 
 	public function render():Xml {
-		final boundingRects:Array<GRect> = this.layers.map(layer -> {
+		final layerAreas:Array<GArea> = this.layers.map(layer -> {
 			final items:GItems = switch layer {
 				case Layer(items, p, s, o, r):
 					items;
 			}
-			return items.getBoundingBox();
+			return items.getBoundingArea();
 		});
-		final boundingRect:GRect = boundingRects.getBoundingRect();
-		final boundingSize = boundingRect.getBoundingSize();
+
+		final boundingArea:GArea = GArea.combineAreas(layerAreas);
+		final boundingSize:GSize = boundingArea.getSize();
+		final movePoint = boundingArea.getXY();
 
 		this.svg = Xml.parse('<svg width="${boundingSize.w}" height="${boundingSize.h}"></svg>').firstElement();
 
@@ -33,7 +35,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 			final eLayer = Xml.createElement('g');
 			this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
-			final movedItems = items.move(-boundingRect.x, -boundingRect.y);
+			final movedItems = items.move(-movePoint.x, -movePoint.y);
 
 			for (item in movedItems) {
 				switch item {
@@ -106,6 +108,29 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 							item.set('style', style);
 
 						eLayer.addChild(item);
+					case Path(path, f, s):
+						final item = Xml.createElement('path');
+						var style = '';
+						switch s {
+							case null:
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case None: style += ' stroke:none; ';
+							default:
+						}
+						switch f {
+							case null:
+							case Solid(c): style += ' fill: ${c.getColor()};';
+							case None: style += ' fill:none; ';
+							default:
+						}
+
+						if (style != '')
+							item.set('style', style);
+						var pathD = path.toString();
+						item.set('d', pathD);
+
+						eLayer.addChild(item);
+						trace(pathD);
 					default:
 				}
 			}

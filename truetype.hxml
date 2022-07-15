@@ -1,14 +1,21 @@
+-r ./fonts/arial.ttf@ttf
+
 
 -D analyzer-optimize
 -dce full
 
 -p test
 -p src 
--m TestSimpleGraphics
+-p ../../_Fonts/TrueTypeHx/src
+-m TestTrueType
 -L utest
 
-# --interp
+--each
 
 -js public/index.js
+
+--next
+
+# --interp
 # --cmd node test.js
 

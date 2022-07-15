@@ -1,5 +1,6 @@
 package graphics;
 
+import haxe.ds.GenericStack;
 import graphics.GCore;
 
 using tools.ArrayItems;
@@ -23,9 +24,9 @@ class GItemsTools {
 	static public function move(items:GItems, mx:Float, my:Float):GItems {
 		final newItems = items.map(item -> {
 			return switch item {
-				case Line(x1, y1, x2, y2, s): GItem.Line(x1 + mx, y1 + mx, x2 + mx, y2 + my, s);
-				case Rect(x, y, w, h, f, s): GItem.Rect(x + mx, y + mx, w, h, f, s);
-				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x + mx, y + mx, w, h, f, s);
+				case Line(x1, y1, x2, y2, s): GItem.Line(x1 + mx, y1 + my, x2 + mx, y2 + my, s);
+				case Rect(x, y, w, h, f, s): GItem.Rect(x + mx, y + my, w, h, f, s);
+				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x + mx, y + my, w, h, f, s);
 				case Path(path, f, s):
 					return GItem.Path(path.move(mx, my), f, s);
 				case Text(x, y, s, f, size, b, i):
@@ -35,81 +36,49 @@ class GItemsTools {
 		return newItems;
 	}
 
-	static public function getBoundingBox(items:GItems):GRect {
-		var minX:Float = null;
-		var minY:Float = null;
-		var maxX:Float = null;
-		var maxY:Float = null;
-
-		for (item in items) {
-			var ix:Float = null;
-			var iy:Float = null;
-			var ix2:Float = null;
-			var iy2:Float = null;
-			switch item {
+	static public function getBoundingArea(items:GItems):GArea {
+		function getItemArea(item:GItem):GArea {
+			return switch item {
 				case Line(x1, y1, x2, y2, s):
-					final halfStrokeWidth = switch s {
-						case null: 0;
-						case Stroke(c, w): w / 2;
-						default: 0;
-					}
-
-					ix = x1.min(x2) - halfStrokeWidth;
-					iy = y1.min(y2) - halfStrokeWidth;
-					ix2 = x1.max(x2) + halfStrokeWidth;
-					iy2 = y1.max(y2) + halfStrokeWidth;
-
+					new GArea(x1, y1, x2, y2);
 				case Rect(x, y, w, h, f, s) | Ellipse(x, y, w, h, f, s):
-					final halfStrokeWidth = switch s {
-						case null: 0;
-						case Stroke(c, w): w / 2;
-						default: 0;
-					}
-
-					ix = x.min(x + w) - halfStrokeWidth;
-					iy = y.min(x + h) - halfStrokeWidth;
-					ix2 = x.max(x + w) + halfStrokeWidth;
-					iy2 = y.max(y + h) + halfStrokeWidth;
-
+					new GArea(x, y, w + x, y + h);
 				case Path(path, f, s):
-					for (pitem in path) {
-						switch pitem {
-							case M(x, y) | L(x, y):
-								ix = x;
-								iy = y;
-								ix2 = x;
-								iy2 = y;
-							case C(x1, y1, x2, y2, x, y):
-								ix = x1.min(x2.min(x));
-								iy = y1.min(y2.min(y));
-								ix2 = x1.max(x2.max(x));
-								iy2 = y1.max(y2.max(y));
-							case Z:
-						}
-					}
-
-				case Text(x, y, s, f, size, b, i):
-					ix = x;
-					iy = y; // - fontHeight...
-					ix2 = x; // + stringWidth...
-					iy2 = y; // + bewlow baseline height...
+					path.getBoundingArea();
+				default:
+					null;
 			}
-
-			if (ix != null)
-				minX = minX != null ? minX.min(ix) : ix;
-			if (iy != null)
-				minY = minY != null ? minY.min(iy) : iy;
-			if (ix2 != null)
-				maxX = maxX != null ? maxX.max(ix2) : ix2;
-			if (iy2 != null)
-				maxY = maxY != null ? maxY.max(iy2) : iy2;
 		}
-		return {
-			x: minX,
-			y: minY,
-			w: maxX,
-			h: maxY,
-		};
+		function getItemHalfStrokeWidth(item:GItem):Float {
+			final s:GStroke = switch item {
+				case null: null;
+				case Line(_, _, _, _, s): s;
+				case Rect(_, _, _, _, _, s) | Ellipse(_, _, _, _, _, s): s;
+				case Path(_, _, s): s;
+				default: null;
+			}
+			return switch s {
+				case null:
+					0;
+				case Stroke(c, w):
+					w / 2;
+				default:
+					0;
+			}
+		}
+
+		if (items == null || items.length == 0)
+			return new GArea(0, 0, 0, 0);
+		var a:GArea = getItemArea(items[0]);
+		if (items.length == 1)
+			return a.inflate(getItemHalfStrokeWidth(items[0]));
+
+		for (idx => item in items) {
+			final itemArea = idx == 0 ? a : getItemArea(item);
+			itemArea.inflate(getItemHalfStrokeWidth(item));
+			a.embraceArea(itemArea);
+		}
+		return a;
 	}
 
 	static public function scale(items:GItems, scaleShape:Float, scaleStroke:Float = null):GItems {

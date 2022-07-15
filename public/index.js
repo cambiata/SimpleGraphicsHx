@@ -54,21 +54,6 @@ HxOverrides.remove = function(a,obj) {
 HxOverrides.now = function() {
 	return Date.now();
 };
-var Lambda = function() { };
-Lambda.__name__ = "Lambda";
-Lambda.array = function(it) {
-	var a = [];
-	var i = $getIterator(it);
-	while(i.hasNext()) a.push(i.next());
-	return a;
-};
-Lambda.has = function(it,elt) {
-	var x = $getIterator(it);
-	while(x.hasNext()) if(x.next() == elt) {
-		return true;
-	}
-	return false;
-};
 Math.__name__ = "Math";
 var Reflect = function() { };
 Reflect.__name__ = "Reflect";
@@ -98,18 +83,6 @@ Reflect.getProperty = function(o,field) {
 		}
 	}
 };
-Reflect.fields = function(o) {
-	var a = [];
-	if(o != null) {
-		var hasOwnProperty = Object.prototype.hasOwnProperty;
-		for( var f in o ) {
-		if(f != "__id__" && f != "hx__closures__" && hasOwnProperty.call(o,f)) {
-			a.push(f);
-		}
-		}
-	}
-	return a;
-};
 Reflect.isFunction = function(f) {
 	if(typeof(f) == "function") {
 		return !(f.__name__ || f.__ename__);
@@ -124,19 +97,6 @@ Reflect.compare = function(a,b) {
 		return 1;
 	} else {
 		return -1;
-	}
-};
-Reflect.compareMethods = function(f1,f2) {
-	if(f1 == f2) {
-		return true;
-	}
-	if(!Reflect.isFunction(f1) || !Reflect.isFunction(f2)) {
-		return false;
-	}
-	if(f1.scope == f2.scope && f1.method == f2.method) {
-		return f1.method != null;
-	} else {
-		return false;
 	}
 };
 Reflect.isObject = function(v) {
@@ -284,18 +244,15 @@ var TestA = function() {
 TestA.__name__ = "TestA";
 TestA.__interfaces__ = [utest_ITest];
 TestA.prototype = {
-	testPath: function() {
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 18, className : "TestA", methodName : "testPath"});
-	}
-	,testLayer: function() {
-		var items = [graphics_GItem.Ellipse(-50,-50,100,100,graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.None),graphics_GItem.Line(0,0,100,-100,graphics_GStroke.Stroke(graphics_GColor.Purple,5)),graphics_GItem.Rect(-100,-100,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Rect(0,0,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10))];
-		var sSurface = new graphics_SvgSurface();
+	testLayer: function() {
+		var items = [graphics_GItem.Ellipse(50,50,100,100,graphics_GFill.Solid(graphics_GColor.Gray),graphics_GStroke.Stroke(graphics_GColor.Black,10)),graphics_GItem.Path(graphics_GPath.fromString("M0 0L100 0L100 100L0 100L0 0 "),graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Path(graphics_GPath.fromString("M100 100L200 100L200 200L100 200L100 100 "),graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.Stroke(graphics_GColor.Purple,10))];
+		var sSurface = new graphics_GSurfaceSvg();
 		sSurface.addItems(items);
 		var svg = sSurface.render();
-		var cSurface = new graphics_CanvasSurface();
+		var cSurface = new graphics_GSurfaceCanvas();
 		cSurface.addItems(items);
 		this.outputToBrowser(svg,cSurface.render());
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 46, className : "TestA", methodName : "testLayer"});
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 102, className : "TestA", methodName : "testLayer"});
 	}
 	,outputToBrowser: function(svgXml,canvas) {
 		var outputEl = window.document.getElementById("output");
@@ -310,10 +267,6 @@ TestA.prototype = {
 	,__initializeUtest__: function() {
 		var _gthis = this;
 		var init = { tests : [], dependencies : [], accessories : { }};
-		init.tests.push({ name : "testPath", dependencies : [], execute : function() {
-			_gthis.testPath();
-			return utest_Async.getResolved();
-		}});
 		init.tests.push({ name : "testLayer", dependencies : [], execute : function() {
 			_gthis.testLayer();
 			return utest_Async.getResolved();
@@ -325,83 +278,14 @@ TestA.prototype = {
 function TestSimpleGraphics_main() {
 	utest_UTest.run([new TestA()]);
 }
-var ValueType = $hxEnums["ValueType"] = { __ename__:"ValueType",__constructs__:null
-	,TNull: {_hx_name:"TNull",_hx_index:0,__enum__:"ValueType",toString:$estr}
-	,TInt: {_hx_name:"TInt",_hx_index:1,__enum__:"ValueType",toString:$estr}
-	,TFloat: {_hx_name:"TFloat",_hx_index:2,__enum__:"ValueType",toString:$estr}
-	,TBool: {_hx_name:"TBool",_hx_index:3,__enum__:"ValueType",toString:$estr}
-	,TObject: {_hx_name:"TObject",_hx_index:4,__enum__:"ValueType",toString:$estr}
-	,TFunction: {_hx_name:"TFunction",_hx_index:5,__enum__:"ValueType",toString:$estr}
-	,TClass: ($_=function(c) { return {_hx_index:6,c:c,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TClass",$_.__params__ = ["c"],$_)
-	,TEnum: ($_=function(e) { return {_hx_index:7,e:e,__enum__:"ValueType",toString:$estr}; },$_._hx_name="TEnum",$_.__params__ = ["e"],$_)
-	,TUnknown: {_hx_name:"TUnknown",_hx_index:8,__enum__:"ValueType",toString:$estr}
-};
-ValueType.__constructs__ = [ValueType.TNull,ValueType.TInt,ValueType.TFloat,ValueType.TBool,ValueType.TObject,ValueType.TFunction,ValueType.TClass,ValueType.TEnum,ValueType.TUnknown];
 var Type = function() { };
 Type.__name__ = "Type";
-Type.getEnum = function(o) {
-	if(o == null) {
-		return null;
-	}
-	return $hxEnums[o.__enum__];
-};
 Type.getInstanceFields = function(c) {
 	var a = [];
 	for(var i in c.prototype) a.push(i);
 	HxOverrides.remove(a,"__class__");
 	HxOverrides.remove(a,"__properties__");
 	return a;
-};
-Type.typeof = function(v) {
-	switch(typeof(v)) {
-	case "boolean":
-		return ValueType.TBool;
-	case "function":
-		if(v.__name__ || v.__ename__) {
-			return ValueType.TObject;
-		}
-		return ValueType.TFunction;
-	case "number":
-		if(Math.ceil(v) == v % 2147483648.0) {
-			return ValueType.TInt;
-		}
-		return ValueType.TFloat;
-	case "object":
-		if(v == null) {
-			return ValueType.TNull;
-		}
-		var e = v.__enum__;
-		if(e != null) {
-			return ValueType.TEnum($hxEnums[e]);
-		}
-		var c = js_Boot.getClass(v);
-		if(c != null) {
-			return ValueType.TClass(c);
-		}
-		return ValueType.TObject;
-	case "string":
-		return ValueType.TClass(String);
-	case "undefined":
-		return ValueType.TNull;
-	default:
-		return ValueType.TUnknown;
-	}
-};
-Type.enumParameters = function(e) {
-	var enm = $hxEnums[e.__enum__];
-	var params = enm.__constructs__[e._hx_index].__params__;
-	if(params != null) {
-		var _g = [];
-		var _g1 = 0;
-		while(_g1 < params.length) {
-			var p = params[_g1];
-			++_g1;
-			_g.push(e[p]);
-		}
-		return _g;
-	} else {
-		return [];
-	}
 };
 var XmlType = {};
 XmlType.toString = function(this1) {
@@ -553,25 +437,17 @@ Xml.prototype = {
 	}
 	,__class__: Xml
 };
-var graphics_GItem = $hxEnums["graphics.GItem"] = { __ename__:"graphics.GItem",__constructs__:null
-	,Line: ($_=function(x1,y1,x2,y2,s) { return {_hx_index:0,x1:x1,y1:y1,x2:x2,y2:y2,s:s,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Line",$_.__params__ = ["x1","y1","x2","y2","s"],$_)
-	,Rect: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:1,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Rect",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
-	,Ellipse: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:2,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Ellipse",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
-	,Path: ($_=function(p,fill,stroke) { return {_hx_index:3,p:p,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Path",$_.__params__ = ["p","fill","stroke"],$_)
-	,Text: ($_=function(x,y,s,font,size,bold,italic) { return {_hx_index:4,x:x,y:y,s:s,font:font,size:size,bold:bold,italic:italic,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Text",$_.__params__ = ["x","y","s","font","size","bold","italic"],$_)
-};
-graphics_GItem.__constructs__ = [graphics_GItem.Line,graphics_GItem.Rect,graphics_GItem.Ellipse,graphics_GItem.Path,graphics_GItem.Text];
-var graphics_GFill = $hxEnums["graphics.GFill"] = { __ename__:"graphics.GFill",__constructs__:null
+var graphics_GFill = $hxEnums["graphics.GFill"] = { __ename__:true,__constructs__:null
 	,None: {_hx_name:"None",_hx_index:0,__enum__:"graphics.GFill",toString:$estr}
 	,Solid: ($_=function(c) { return {_hx_index:1,c:c,__enum__:"graphics.GFill",toString:$estr}; },$_._hx_name="Solid",$_.__params__ = ["c"],$_)
 };
 graphics_GFill.__constructs__ = [graphics_GFill.None,graphics_GFill.Solid];
-var graphics_GStroke = $hxEnums["graphics.GStroke"] = { __ename__:"graphics.GStroke",__constructs__:null
+var graphics_GStroke = $hxEnums["graphics.GStroke"] = { __ename__:true,__constructs__:null
 	,None: {_hx_name:"None",_hx_index:0,__enum__:"graphics.GStroke",toString:$estr}
 	,Stroke: ($_=function(c,width) { return {_hx_index:1,c:c,width:width,__enum__:"graphics.GStroke",toString:$estr}; },$_._hx_name="Stroke",$_.__params__ = ["c","width"],$_)
 };
 graphics_GStroke.__constructs__ = [graphics_GStroke.None,graphics_GStroke.Stroke];
-var graphics_GColor = $hxEnums["graphics.GColor"] = { __ename__:"graphics.GColor",__constructs__:null
+var graphics_GColor = $hxEnums["graphics.GColor"] = { __ename__:true,__constructs__:null
 	,RGBA: ($_=function(r,g,b,a) { return {_hx_index:0,r:r,g:g,b:b,a:a,__enum__:"graphics.GColor",toString:$estr}; },$_._hx_name="RGBA",$_.__params__ = ["r","g","b","a"],$_)
 	,Red: {_hx_name:"Red",_hx_index:1,__enum__:"graphics.GColor",toString:$estr}
 	,Blue: {_hx_name:"Blue",_hx_index:2,__enum__:"graphics.GColor",toString:$estr}
@@ -583,182 +459,88 @@ var graphics_GColor = $hxEnums["graphics.GColor"] = { __ename__:"graphics.GColor
 	,Black: {_hx_name:"Black",_hx_index:8,__enum__:"graphics.GColor",toString:$estr}
 };
 graphics_GColor.__constructs__ = [graphics_GColor.RGBA,graphics_GColor.Red,graphics_GColor.Blue,graphics_GColor.Green,graphics_GColor.Yellow,graphics_GColor.Purple,graphics_GColor.Gray,graphics_GColor.White,graphics_GColor.Black];
-var graphics_GLayer = $hxEnums["graphics.GLayer"] = { __ename__:"graphics.GLayer",__constructs__:null
+var graphics_GLayer = $hxEnums["graphics.GLayer"] = { __ename__:true,__constructs__:null
 	,Layer: ($_=function(items,placement,size,opacity,rotation) { return {_hx_index:0,items:items,placement:placement,size:size,opacity:opacity,rotation:rotation,__enum__:"graphics.GLayer",toString:$estr}; },$_._hx_name="Layer",$_.__params__ = ["items","placement","size","opacity","rotation"],$_)
 };
 graphics_GLayer.__constructs__ = [graphics_GLayer.Layer];
-var graphics_GValue = $hxEnums["graphics.GValue"] = { __ename__:"graphics.GValue",__constructs__:null
+var graphics_GValue = $hxEnums["graphics.GValue"] = { __ename__:true,__constructs__:null
 	,SValue: ($_=function(v) { return {_hx_index:0,v:v,__enum__:"graphics.GValue",toString:$estr}; },$_._hx_name="SValue",$_.__params__ = ["v"],$_)
 	,AValue: ($_=function(v) { return {_hx_index:1,v:v,__enum__:"graphics.GValue",toString:$estr}; },$_._hx_name="AValue",$_.__params__ = ["v"],$_)
 };
 graphics_GValue.__constructs__ = [graphics_GValue.SValue,graphics_GValue.AValue];
-var graphics_GPoint = $hxEnums["graphics.GPoint"] = { __ename__:"graphics.GPoint",__constructs__:null
+var graphics_GPoint = $hxEnums["graphics.GPoint"] = { __ename__:true,__constructs__:null
 	,SPoint: ($_=function(x,y) { return {_hx_index:0,x:x,y:y,__enum__:"graphics.GPoint",toString:$estr}; },$_._hx_name="SPoint",$_.__params__ = ["x","y"],$_)
 	,APoint: ($_=function(v) { return {_hx_index:1,v:v,__enum__:"graphics.GPoint",toString:$estr}; },$_._hx_name="APoint",$_.__params__ = ["v"],$_)
 };
 graphics_GPoint.__constructs__ = [graphics_GPoint.SPoint,graphics_GPoint.APoint];
-var graphics_GPathElement = $hxEnums["graphics.GPathElement"] = { __ename__:"graphics.GPathElement",__constructs__:null
-	,M: ($_=function(x,y) { return {_hx_index:0,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="M",$_.__params__ = ["x","y"],$_)
-	,L: ($_=function(x,y) { return {_hx_index:1,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="L",$_.__params__ = ["x","y"],$_)
-	,C: ($_=function(x1,y1,x2,y2,x,y) { return {_hx_index:2,x1:x1,y1:y1,x2:x2,y2:y2,x:x,y:y,__enum__:"graphics.GPathElement",toString:$estr}; },$_._hx_name="C",$_.__params__ = ["x1","y1","x2","y2","x","y"],$_)
-	,Z: {_hx_name:"Z",_hx_index:3,__enum__:"graphics.GPathElement",toString:$estr}
+var graphics_GArea = {};
+graphics_GArea._new = function(x,y,x2,y2) {
+	if(x > x2) {
+		var xt = x;
+		x = x2;
+		x2 = xt;
+	}
+	if(y > y2) {
+		var yt = y;
+		y = y2;
+		y2 = yt;
+	}
+	return { x : x, y : y, x2 : x2, y2 : y2};
 };
-graphics_GPathElement.__constructs__ = [graphics_GPathElement.M,graphics_GPathElement.L,graphics_GPathElement.C,graphics_GPathElement.Z];
-var graphics_PathStringOrGPath = {};
-graphics_PathStringOrGPath._new = function(path) {
-	return path;
+graphics_GArea.embraceArea = function(this1,a) {
+	if(a.x < this1.x) {
+		this1.x = a.x;
+	}
+	if(a.y < this1.y) {
+		this1.y = a.y;
+	}
+	if(a.x2 > this1.x2) {
+		this1.x2 = a.x2;
+	}
+	if(a.y2 > this1.y2) {
+		this1.y2 = a.y2;
+	}
+	return this1;
 };
-graphics_PathStringOrGPath.fromString = function(pathString) {
-	haxe_Log.trace("create path from " + pathString,{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 80, className : "graphics._SimpleGraphics.PathStringOrGPath_Impl_", methodName : "fromString"});
-	return graphics_PathStringOrGPath._new([]);
+graphics_GArea.getSize = function(this1) {
+	return { w : this1.x2 - this1.x, h : this1.y2 - this1.y};
 };
-var graphics_GSurface = function() { };
-graphics_GSurface.__name__ = "graphics.GSurface";
-graphics_GSurface.__isInterface__ = true;
-graphics_GSurface.prototype = {
-	addLayer: null
-	,addItem: null
-	,__class__: graphics_GSurface
+graphics_GArea.getXY = function(this1) {
+	return { x : this1.x, y : this1.y};
 };
-var graphics_GSurfaceRenderer = function() { };
-graphics_GSurfaceRenderer.__name__ = "graphics.GSurfaceRenderer";
-graphics_GSurfaceRenderer.__isInterface__ = true;
-graphics_GSurfaceRenderer.__interfaces__ = [graphics_GSurface];
-graphics_GSurfaceRenderer.prototype = {
-	render: null
-	,__class__: graphics_GSurfaceRenderer
-};
-var graphics_GTools = function() { };
-graphics_GTools.__name__ = "graphics.GTools";
-graphics_GTools.getBoundingBox = function(items) {
-	var minX = null;
-	var minY = null;
-	var maxX = null;
-	var maxY = null;
+graphics_GArea.combineAreas = function(areas) {
+	if(areas == null || areas.length == 0) {
+		return graphics_GArea._new(0,0,0,0);
+	}
+	if(areas.length == 1) {
+		return areas[0];
+	}
+	var combineArea = areas.shift();
 	var _g = 0;
-	while(_g < items.length) {
-		var item = items[_g];
-		++_g;
-		var ix = null;
-		var iy = null;
-		var ix2 = null;
-		var iy2 = null;
-		switch(item._hx_index) {
-		case 0:
-			var _g1 = item.x1;
-			var _g2 = item.y1;
-			var _g3 = item.x2;
-			var _g4 = item.y2;
-			var _g5 = item.s;
-			var halfStrokeWidth = _g5 == null ? 0 : _g5._hx_index == 1 ? _g5.width / 2 : 0;
-			ix = Math.min(_g1,_g3) - halfStrokeWidth;
-			iy = Math.min(_g2,_g4) - halfStrokeWidth;
-			ix2 = Math.max(_g1,_g3) + halfStrokeWidth;
-			iy2 = Math.max(_g2,_g4) + halfStrokeWidth;
-			break;
-		case 1:
-			var _g6 = item.x;
-			var _g7 = item.y;
-			var _g8 = item.w;
-			var _g9 = item.h;
-			var _g10 = item.stroke;
-			var halfStrokeWidth1 = _g10 == null ? 0 : _g10._hx_index == 1 ? _g10.width / 2 : 0;
-			ix = Math.min(_g6,_g6 + _g8) - halfStrokeWidth1;
-			iy = Math.min(_g7,_g6 + _g9) - halfStrokeWidth1;
-			ix2 = Math.max(_g6,_g6 + _g8) + halfStrokeWidth1;
-			iy2 = Math.max(_g7,_g7 + _g9) + halfStrokeWidth1;
-			break;
-		case 2:
-			var _g11 = item.x;
-			var _g12 = item.y;
-			var _g13 = item.w;
-			var _g14 = item.h;
-			var _g15 = item.stroke;
-			var halfStrokeWidth2 = _g15 == null ? 0 : _g15._hx_index == 1 ? _g15.width / 2 : 0;
-			ix = Math.min(_g11,_g11 + _g13) - halfStrokeWidth2;
-			iy = Math.min(_g12,_g11 + _g14) - halfStrokeWidth2;
-			ix2 = Math.max(_g11,_g11 + _g13) + halfStrokeWidth2;
-			iy2 = Math.max(_g12,_g12 + _g14) + halfStrokeWidth2;
-			break;
-		case 3:
-			var _g_current = 0;
-			var _g_array = item.p;
-			while(_g_current < _g_array.length) {
-				var pitem = _g_array[_g_current++];
-				switch(pitem._hx_index) {
-				case 0:
-					var _g16 = pitem.x;
-					var _g17 = pitem.y;
-					ix = _g16;
-					iy = _g17;
-					ix2 = _g16;
-					iy2 = _g17;
-					break;
-				case 1:
-					var _g18 = pitem.x;
-					var _g19 = pitem.y;
-					ix = _g18;
-					iy = _g19;
-					ix2 = _g18;
-					iy2 = _g19;
-					break;
-				case 2:
-					var _g20 = pitem.x1;
-					var _g21 = pitem.y1;
-					var _g22 = pitem.x2;
-					var _g23 = pitem.y2;
-					var _g24 = pitem.x;
-					var _g25 = pitem.y;
-					ix = Math.min(_g20,Math.min(_g22,_g24));
-					iy = Math.min(_g21,Math.min(_g23,_g25));
-					ix2 = Math.max(_g20,Math.max(_g22,_g24));
-					iy2 = Math.max(_g21,Math.max(_g23,_g25));
-					break;
-				case 3:
-					break;
-				}
-			}
-			break;
-		case 4:
-			var _g26 = item.x;
-			var _g27 = item.y;
-			ix = _g26;
-			iy = _g27;
-			ix2 = _g26;
-			iy2 = _g27;
-			break;
-		}
-		if(ix != null) {
-			minX = minX != null ? Math.min(minX,ix) : ix;
-		}
-		if(iy != null) {
-			minY = minY != null ? Math.min(minY,iy) : iy;
-		}
-		if(ix2 != null) {
-			maxX = maxX != null ? Math.max(maxX,ix2) : ix2;
-		}
-		if(iy2 != null) {
-			maxY = maxY != null ? Math.max(maxY,iy2) : iy2;
-		}
+	while(_g < areas.length) graphics_GArea.embraceArea(combineArea,areas[_g++]);
+	return combineArea;
+};
+graphics_GArea.inflate = function(this1,x,y) {
+	if(y == null) {
+		y = x;
 	}
-	return { x : minX, y : minY, w : maxX, h : maxY};
+	this1.x -= x;
+	this1.y -= y;
+	this1.x2 += x;
+	this1.y2 += y;
+	return this1;
 };
-graphics_GTools.getBoundingRect = function(rects) {
-	var ret = rects[0];
-	if(rects.length > 1) {
-		var _g = 0;
-		while(_g < rects.length) {
-			var rect = rects[_g];
-			++_g;
-			ret = { x : Math.min(ret.x,rect.x), y : Math.min(ret.y,rect.y), w : Math.max(ret.w,rect.w), h : Math.max(ret.h,rect.h)};
-		}
-	}
-	return ret;
+var graphics_GItem = $hxEnums["graphics.GItem"] = { __ename__:true,__constructs__:null
+	,Line: ($_=function(x1,y1,x2,y2,s) { return {_hx_index:0,x1:x1,y1:y1,x2:x2,y2:y2,s:s,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Line",$_.__params__ = ["x1","y1","x2","y2","s"],$_)
+	,Rect: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:1,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Rect",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
+	,Ellipse: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:2,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Ellipse",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
+	,Path: ($_=function(p,fill,stroke) { return {_hx_index:3,p:p,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Path",$_.__params__ = ["p","fill","stroke"],$_)
+	,Text: ($_=function(x,y,s,font,size,bold,italic) { return {_hx_index:4,x:x,y:y,s:s,font:font,size:size,bold:bold,italic:italic,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Text",$_.__params__ = ["x","y","s","font","size","bold","italic"],$_)
 };
-graphics_GTools.getBoundingSize = function(rect) {
-	return { w : rect.w - rect.x, h : rect.h - rect.y};
-};
-graphics_GTools.moveItems = function(items,mx,my) {
+graphics_GItem.__constructs__ = [graphics_GItem.Line,graphics_GItem.Rect,graphics_GItem.Ellipse,graphics_GItem.Path,graphics_GItem.Text];
+var graphics_GItemsTools = function() { };
+graphics_GItemsTools.__name__ = "graphics.GItemsTools";
+graphics_GItemsTools.move = function(items,mx,my) {
 	var result = new Array(items.length);
 	var _g = 0;
 	var _g1 = items.length;
@@ -768,42 +550,16 @@ graphics_GTools.moveItems = function(items,mx,my) {
 		var tmp;
 		switch(item._hx_index) {
 		case 0:
-			tmp = graphics_GItem.Line(item.x1 + mx,item.y1 + mx,item.x2 + mx,item.y2 + my,item.s);
+			tmp = graphics_GItem.Line(item.x1 + mx,item.y1 + my,item.x2 + mx,item.y2 + my,item.s);
 			break;
 		case 1:
-			tmp = graphics_GItem.Rect(item.x + mx,item.y + mx,item.w,item.h,item.fill,item.stroke);
+			tmp = graphics_GItem.Rect(item.x + mx,item.y + my,item.w,item.h,item.fill,item.stroke);
 			break;
 		case 2:
-			tmp = graphics_GItem.Ellipse(item.x + mx,item.y + mx,item.w,item.h,item.fill,item.stroke);
+			tmp = graphics_GItem.Ellipse(item.x + mx,item.y + my,item.w,item.h,item.fill,item.stroke);
 			break;
 		case 3:
-			var _g2 = item.p;
-			var _g3 = item.fill;
-			var _g4 = item.stroke;
-			var result1 = new Array(_g2.length);
-			var _g5 = 0;
-			var _g11 = _g2.length;
-			while(_g5 < _g11) {
-				var i1 = _g5++;
-				var pitem = _g2[i1];
-				var tmp1;
-				switch(pitem._hx_index) {
-				case 0:
-					tmp1 = graphics_GPathElement.M(pitem.x + mx,pitem.y + my);
-					break;
-				case 1:
-					tmp1 = graphics_GPathElement.L(pitem.x + mx,pitem.y + my);
-					break;
-				case 2:
-					tmp1 = graphics_GPathElement.C(pitem.x1 + mx,pitem.y1 + mx,pitem.x2 + mx,pitem.y2 + my,pitem.x + mx,pitem.y + my);
-					break;
-				case 3:
-					tmp1 = graphics_GPathElement.Z;
-					break;
-				}
-				result1[i1] = tmp1;
-			}
-			tmp = graphics_GItem.Path(result1,_g3,_g4);
+			tmp = graphics_GItem.Path(graphics_GPathTools.move(item.p,mx,my),item.fill,item.stroke);
 			break;
 		case 4:
 			tmp = graphics_GItem.Text(item.x + mx,item.y + my,item.s,item.font,item.size,item.bold,item.italic);
@@ -813,38 +569,466 @@ graphics_GTools.moveItems = function(items,mx,my) {
 	}
 	return result;
 };
-graphics_GTools.getColor = function(c) {
-	return $hxEnums[c.__enum__].__constructs__[c._hx_index]._hx_name.toLowerCase();
+graphics_GItemsTools.getBoundingArea = function(items) {
+	var getItemArea = function(item) {
+		switch(item._hx_index) {
+		case 0:
+			return graphics_GArea._new(item.x1,item.y1,item.x2,item.y2);
+		case 1:
+			var _g = item.x;
+			var _g1 = item.y;
+			return graphics_GArea._new(_g,_g1,item.w + _g,_g1 + item.h);
+		case 2:
+			var _g = item.x;
+			var _g1 = item.y;
+			return graphics_GArea._new(_g,_g1,item.w + _g,_g1 + item.h);
+		case 3:
+			return graphics_GPathTools.getBoundingArea(item.p);
+		default:
+			return null;
+		}
+	};
+	var getItemHalfStrokeWidth = function(item) {
+		var s;
+		if(item == null) {
+			s = null;
+		} else {
+			switch(item._hx_index) {
+			case 0:
+				s = item.s;
+				break;
+			case 1:
+				s = item.stroke;
+				break;
+			case 2:
+				s = item.stroke;
+				break;
+			case 3:
+				s = item.stroke;
+				break;
+			default:
+				s = null;
+			}
+		}
+		if(s == null) {
+			return 0;
+		} else if(s._hx_index == 1) {
+			return s.width / 2;
+		} else {
+			return 0;
+		}
+	};
+	if(items == null || items.length == 0) {
+		return graphics_GArea._new(0,0,0,0);
+	}
+	var a = getItemArea(items[0]);
+	if(items.length == 1) {
+		return graphics_GArea.inflate(a,getItemHalfStrokeWidth(items[0]));
+	}
+	var _g_current = 0;
+	while(_g_current < items.length) {
+		var _g1_value = items[_g_current];
+		var itemArea = _g_current++ == 0 ? a : getItemArea(_g1_value);
+		graphics_GArea.inflate(itemArea,getItemHalfStrokeWidth(_g1_value));
+		graphics_GArea.embraceArea(a,itemArea);
+	}
+	return a;
 };
-var graphics_BaseSurface = function() {
+var graphics_GPathSegment = $hxEnums["graphics.GPathSegment"] = { __ename__:true,__constructs__:null
+	,M: ($_=function(x,y) { return {_hx_index:0,x:x,y:y,__enum__:"graphics.GPathSegment",toString:$estr}; },$_._hx_name="M",$_.__params__ = ["x","y"],$_)
+	,L: ($_=function(x,y) { return {_hx_index:1,x:x,y:y,__enum__:"graphics.GPathSegment",toString:$estr}; },$_._hx_name="L",$_.__params__ = ["x","y"],$_)
+	,Q: ($_=function(x1,y1,x2,y2) { return {_hx_index:2,x1:x1,y1:y1,x2:x2,y2:y2,__enum__:"graphics.GPathSegment",toString:$estr}; },$_._hx_name="Q",$_.__params__ = ["x1","y1","x2","y2"],$_)
+	,C: ($_=function(x1,y1,x2,y2,x,y) { return {_hx_index:3,x1:x1,y1:y1,x2:x2,y2:y2,x:x,y:y,__enum__:"graphics.GPathSegment",toString:$estr}; },$_._hx_name="C",$_.__params__ = ["x1","y1","x2","y2","x","y"],$_)
+	,Z: {_hx_name:"Z",_hx_index:4,__enum__:"graphics.GPathSegment",toString:$estr}
+};
+graphics_GPathSegment.__constructs__ = [graphics_GPathSegment.M,graphics_GPathSegment.L,graphics_GPathSegment.Q,graphics_GPathSegment.C,graphics_GPathSegment.Z];
+var graphics_GPath = {};
+graphics_GPath._new = function(path) {
+	return path;
+};
+graphics_GPath.fromString = function(pathString) {
+	return graphics_GPath._new(graphics_GPathTools.getGPathFromString(pathString));
+};
+var graphics_GPathTools = function() { };
+graphics_GPathTools.__name__ = "graphics.GPathTools";
+graphics_GPathTools.getBoundingArea = function(path) {
+	var first;
+	var _g = path[0];
+	switch(_g._hx_index) {
+	case 0:
+		first = [_g.x,_g.y];
+		break;
+	case 1:
+		first = [_g.x,_g.y];
+		break;
+	case 2:
+		first = [Math.min(_g.x1,_g.x2),Math.min(_g.y1,_g.y2)];
+		break;
+	case 3:
+		first = [Math.min(_g.x1,Math.min(_g.x2,_g.x)),Math.min(_g.y1,Math.min(_g.y2,_g.y))];
+		break;
+	case 4:
+		first = null;
+		break;
+	}
+	var minX = first[0];
+	var minY = first[1];
+	var maxX = first[0];
+	var maxY = first[1];
+	var _g15_current = 0;
+	var _g15_array = path;
+	while(_g15_current < _g15_array.length) {
+		var item = _g15_array[_g15_current++];
+		switch(item._hx_index) {
+		case 0:
+			var _g = item.x;
+			var _g1 = item.y;
+			minX = Math.min(minX,_g);
+			minY = Math.min(minY,_g1);
+			maxX = Math.max(maxX,_g);
+			maxY = Math.max(maxY,_g1);
+			break;
+		case 1:
+			var _g2 = item.x;
+			var _g3 = item.y;
+			minX = Math.min(minX,_g2);
+			minY = Math.min(minY,_g3);
+			maxX = Math.max(maxX,_g2);
+			maxY = Math.max(maxY,_g3);
+			break;
+		case 2:
+			var _g4 = item.x1;
+			var _g5 = item.y1;
+			var _g6 = item.x2;
+			var _g7 = item.y2;
+			minX = Math.min(minX,_g6);
+			minY = Math.min(minY,_g7);
+			maxX = Math.max(maxX,_g6);
+			maxY = Math.max(maxY,_g7);
+			minX = Math.min(minX,_g4);
+			minY = Math.min(minY,_g5);
+			maxX = Math.max(maxX,_g4);
+			maxY = Math.max(maxY,_g5);
+			break;
+		case 3:
+			var _g8 = item.x1;
+			var _g9 = item.y1;
+			var _g10 = item.x2;
+			var _g11 = item.y2;
+			var _g12 = item.x;
+			var _g13 = item.y;
+			minX = Math.min(minX,_g12);
+			minY = Math.min(minY,_g13);
+			maxX = Math.max(maxX,_g12);
+			maxY = Math.max(maxY,_g13);
+			minX = Math.min(minX,_g8);
+			minY = Math.min(minY,_g9);
+			maxX = Math.max(maxX,_g8);
+			maxY = Math.max(maxY,_g9);
+			minX = Math.min(minX,_g10);
+			minY = Math.min(minY,_g11);
+			maxX = Math.max(maxX,_g10);
+			maxY = Math.max(maxY,_g11);
+			break;
+		case 4:
+			break;
+		}
+	}
+	return graphics_GArea._new(minX,minY,maxX,maxY);
+};
+graphics_GPathTools.move = function(path,mx,my) {
+	var result = new Array(path.length);
+	var _g = 0;
+	var _g1 = path.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var pitem = path[i];
+		var tmp;
+		switch(pitem._hx_index) {
+		case 0:
+			tmp = graphics_GPathSegment.M(pitem.x + mx,pitem.y + my);
+			break;
+		case 1:
+			tmp = graphics_GPathSegment.L(pitem.x + mx,pitem.y + my);
+			break;
+		case 2:
+			tmp = graphics_GPathSegment.Q(pitem.x1 + mx,pitem.y1 + my,pitem.x2 + mx,pitem.y2 + my);
+			break;
+		case 3:
+			tmp = graphics_GPathSegment.C(pitem.x1 + mx,pitem.y1 + my,pitem.x2 + mx,pitem.y2 + my,pitem.x + mx,pitem.y + my);
+			break;
+		case 4:
+			tmp = graphics_GPathSegment.Z;
+			break;
+		}
+		result[i] = tmp;
+	}
+	return result;
+};
+graphics_GPathTools.getGPathFromString = function(pathString) {
+	var segments = [];
+	var _g = 0;
+	var _g1 = pathString.split("");
+	while(_g < _g1.length) {
+		var c = _g1[_g];
+		++_g;
+		switch(c) {
+		case "A":case "C":case "L":case "M":case "Q":case "Z":case "a":case "c":case "l":case "m":case "q":case "z":
+			segments.push(c);
+			break;
+		default:
+			segments[segments.length - 1] += c;
+		}
+	}
+	var path = [];
+	var _g = 0;
+	while(_g < segments.length) {
+		var segment = segments[_g];
+		++_g;
+		var _this = StringTools.replace(HxOverrides.substr(StringTools.trim(segment),1,null)," ",",").split(",");
+		var result = new Array(_this.length);
+		var _g1 = 0;
+		var _g11 = _this.length;
+		while(_g1 < _g11) {
+			var i = _g1++;
+			result[i] = parseFloat(_this[i]);
+		}
+		var item;
+		switch(segment.charAt(0)) {
+		case "C":
+			if(result.length != 6) {
+				throw new haxe_Exception("There should be 6 values for a C segment (" + Std.string(result) + ")");
+			}
+			item = graphics_GPathSegment.C(result[0],result[1],result[2],result[3],result[4],result[5]);
+			break;
+		case "L":
+			if(result.length != 2) {
+				throw new haxe_Exception("There should be 2 values for a L segment (" + Std.string(result) + ")");
+			}
+			item = graphics_GPathSegment.L(result[0],result[1]);
+			break;
+		case "M":
+			if(result.length != 2) {
+				throw new haxe_Exception("There should be 2 values for a M segment (" + Std.string(result) + ")");
+			}
+			item = graphics_GPathSegment.M(result[0],result[1]);
+			break;
+		case "Q":
+			if(result.length != 4) {
+				throw new haxe_Exception("There should be 4 values for a Q segment (" + Std.string(result) + ")");
+			}
+			item = graphics_GPathSegment.Q(result[0],result[1],result[2],result[3]);
+			break;
+		case "Z":case "z":
+			item = graphics_GPathSegment.Z;
+			break;
+		default:
+			haxe_Log.trace(segment.charAt(0),{ fileName : "src/graphics/GPath.hx", lineNumber : 154, className : "graphics.GPathTools", methodName : "getGPathFromString"});
+			item = null;
+		}
+		path.push(item);
+	}
+	return path;
+};
+graphics_GPathTools.toString = function(path) {
+	var s = "";
+	var _g_current = 0;
+	var _g_array = path;
+	while(_g_current < _g_array.length) {
+		var segment = _g_array[_g_current++];
+		switch(segment._hx_index) {
+		case 0:
+			s += "M" + segment.x + " " + segment.y;
+			break;
+		case 1:
+			s += "L" + segment.x + " " + segment.y;
+			break;
+		case 2:
+			s += "Q" + segment.x1 + " " + segment.y1 + " " + segment.x2 + " " + segment.y2;
+			break;
+		case 3:
+			s += "C" + segment.x1 + " " + segment.y1 + " " + segment.x2 + " " + segment.y2 + " " + segment.x + " " + segment.y;
+			break;
+		case 4:
+			s += "Z";
+			break;
+		}
+	}
+	return s;
+};
+var graphics_ISurface = function() { };
+graphics_ISurface.__name__ = "graphics.ISurface";
+graphics_ISurface.__isInterface__ = true;
+var graphics_ISurfaceRenderer = function() { };
+graphics_ISurfaceRenderer.__name__ = "graphics.ISurfaceRenderer";
+graphics_ISurfaceRenderer.__isInterface__ = true;
+graphics_ISurfaceRenderer.__interfaces__ = [graphics_ISurface];
+var graphics_GSurfaceBase = function() {
 	this.layers = [];
 	this.layerItems = [];
 	this.layers = [graphics_GLayer.Layer(this.layerItems,null,null,null,null)];
 };
-graphics_BaseSurface.__name__ = "graphics.BaseSurface";
-graphics_BaseSurface.prototype = {
+graphics_GSurfaceBase.__name__ = "graphics.GSurfaceBase";
+graphics_GSurfaceBase.prototype = {
 	layers: null
 	,layerItems: null
-	,addLayer: function(layer) {
-		this.layers.push(layer);
-		this.layerItems = layer.items;
-	}
-	,addItem: function(item) {
-		this.layerItems.push(item);
-	}
 	,addItems: function(items) {
 		var _g = 0;
 		while(_g < items.length) this.layerItems.push(items[_g++]);
 	}
-	,__class__: graphics_BaseSurface
+	,__class__: graphics_GSurfaceBase
 };
-var graphics_SvgSurface = function() {
-	graphics_BaseSurface.call(this);
+var graphics_GSurfaceCanvas = function() {
+	graphics_GSurfaceBase.call(this);
 };
-graphics_SvgSurface.__name__ = "graphics.SvgSurface";
-graphics_SvgSurface.__interfaces__ = [graphics_GSurfaceRenderer];
-graphics_SvgSurface.__super__ = graphics_BaseSurface;
-graphics_SvgSurface.prototype = $extend(graphics_BaseSurface.prototype,{
+graphics_GSurfaceCanvas.__name__ = "graphics.GSurfaceCanvas";
+graphics_GSurfaceCanvas.__interfaces__ = [graphics_ISurfaceRenderer];
+graphics_GSurfaceCanvas.__super__ = graphics_GSurfaceBase;
+graphics_GSurfaceCanvas.prototype = $extend(graphics_GSurfaceBase.prototype,{
+	render: function() {
+		var _this = this.layers;
+		var result = new Array(_this.length);
+		var _g = 0;
+		var _g1 = _this.length;
+		while(_g < _g1) {
+			var i = _g++;
+			result[i] = graphics_GItemsTools.getBoundingArea(_this[i].items);
+		}
+		haxe_Log.trace(result,{ fileName : "src/graphics/GSurfaceCanvas.hx", lineNumber : 29, className : "graphics.GSurfaceCanvas", methodName : "render"});
+		var boundingArea = graphics_GArea.combineAreas(result);
+		haxe_Log.trace(boundingArea,{ fileName : "src/graphics/GSurfaceCanvas.hx", lineNumber : 31, className : "graphics.GSurfaceCanvas", methodName : "render"});
+		var boundingSize = graphics_GArea.getSize(boundingArea);
+		var movePoint = graphics_GArea.getXY(boundingArea);
+		var canvas = window.document.createElement("canvas");
+		canvas.setAttribute("width",boundingSize.w == null ? "null" : "" + boundingSize.w);
+		canvas.setAttribute("height",boundingSize.h == null ? "null" : "" + boundingSize.h);
+		canvas.style.width = boundingSize.w + "px";
+		canvas.style.height = boundingSize.h + "px";
+		var ctx = canvas.getContext("2d",null);
+		var _g = 0;
+		var _g1 = this.layers;
+		while(_g < _g1.length) {
+			var movedItems = graphics_GItemsTools.move(_g1[_g++].items,-movePoint.x,-movePoint.y);
+			var _g2 = 0;
+			while(_g2 < movedItems.length) {
+				var item = movedItems[_g2];
+				++_g2;
+				switch(item._hx_index) {
+				case 0:
+					var _g3 = item.s;
+					ctx.beginPath();
+					ctx.moveTo(item.x1,item.y1);
+					ctx.lineTo(item.x2,item.y2);
+					if(_g3 != null) {
+						switch(_g3._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g3.c);
+							ctx.lineWidth = _g3.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				case 1:
+					var _g4 = item.fill;
+					var _g5 = item.stroke;
+					ctx.beginPath();
+					ctx.rect(item.x,item.y,item.w,item.h);
+					switch(_g4._hx_index) {
+					case 0:
+						break;
+					case 1:
+						ctx.fillStyle = graphics_GTools.getColor(_g4.c);
+						ctx.fill();
+						break;
+					}
+					if(_g5 != null) {
+						switch(_g5._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g5.c);
+							ctx.lineWidth = _g5.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				case 2:
+					var _g6 = item.w;
+					var _g7 = item.h;
+					var _g8 = item.fill;
+					var _g9 = item.stroke;
+					ctx.beginPath();
+					ctx.ellipse(item.x + _g6 / 2,item.y + _g7 / 2,_g6 / 2,_g7 / 2,Math.PI / 4,0,2 * Math.PI);
+					switch(_g8._hx_index) {
+					case 0:
+						break;
+					case 1:
+						var _g10 = _g8.c;
+						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/GSurfaceCanvas.hx", lineNumber : 86, className : "graphics.GSurfaceCanvas", methodName : "render"});
+						ctx.fillStyle = graphics_GTools.getColor(_g10);
+						ctx.fill();
+						break;
+					}
+					if(_g9 != null) {
+						switch(_g9._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g9.c);
+							ctx.lineWidth = _g9.width;
+							ctx.stroke();
+							break;
+						}
+					}
+					break;
+				case 3:
+					var _g11 = item.fill;
+					var _g12 = item.stroke;
+					ctx.beginPath();
+					var pathString = graphics_GPathTools.toString(item.p);
+					haxe_Log.trace(pathString,{ fileName : "src/graphics/GSurfaceCanvas.hx", lineNumber : 102, className : "graphics.GSurfaceCanvas", methodName : "render"});
+					var p = new Path2D(pathString);
+					switch(_g11._hx_index) {
+					case 0:
+						break;
+					case 1:
+						var _g13 = _g11.c;
+						haxe_Log.trace(graphics_GTools.getColor(_g13),{ fileName : "src/graphics/GSurfaceCanvas.hx", lineNumber : 107, className : "graphics.GSurfaceCanvas", methodName : "render"});
+						ctx.fillStyle = graphics_GTools.getColor(_g13);
+						ctx.fill(p);
+						break;
+					}
+					if(_g12 != null) {
+						switch(_g12._hx_index) {
+						case 0:
+							break;
+						case 1:
+							ctx.strokeStyle = graphics_GTools.getColor(_g12.c);
+							ctx.lineWidth = _g12.width;
+							ctx.stroke(p);
+							break;
+						}
+					}
+					break;
+				default:
+				}
+			}
+		}
+		return canvas;
+	}
+	,__class__: graphics_GSurfaceCanvas
+});
+var graphics_GSurfaceSvg = function() {
+	graphics_GSurfaceBase.call(this);
+};
+graphics_GSurfaceSvg.__name__ = "graphics.GSurfaceSvg";
+graphics_GSurfaceSvg.__interfaces__ = [graphics_ISurfaceRenderer];
+graphics_GSurfaceSvg.__super__ = graphics_GSurfaceBase;
+graphics_GSurfaceSvg.prototype = $extend(graphics_GSurfaceBase.prototype,{
 	svg: null
 	,render: function() {
 		var _this = this.layers;
@@ -853,10 +1037,11 @@ graphics_SvgSurface.prototype = $extend(graphics_BaseSurface.prototype,{
 		var _g1 = _this.length;
 		while(_g < _g1) {
 			var i = _g++;
-			result[i] = graphics_GTools.getBoundingBox(_this[i].items);
+			result[i] = graphics_GItemsTools.getBoundingArea(_this[i].items);
 		}
-		var boundingRect = graphics_GTools.getBoundingRect(result);
-		var boundingSize = graphics_GTools.getBoundingSize(boundingRect);
+		var boundingArea = graphics_GArea.combineAreas(result);
+		var boundingSize = graphics_GArea.getSize(boundingArea);
+		var movePoint = graphics_GArea.getXY(boundingArea);
 		this.svg = Xml.parse("<svg width=\"" + boundingSize.w + "\" height=\"" + boundingSize.h + "\"></svg>").firstElement();
 		var _g = 0;
 		var _g1 = this.layers;
@@ -864,7 +1049,7 @@ graphics_SvgSurface.prototype = $extend(graphics_BaseSurface.prototype,{
 			var layer = _g1[_g++];
 			var eLayer = Xml.createElement("g");
 			this.svg.addChild(eLayer);
-			var movedItems = graphics_GTools.moveItems(layer.items,-boundingRect.x,-boundingRect.y);
+			var movedItems = graphics_GItemsTools.move(layer.items,-movePoint.x,-movePoint.y);
 			var _g2 = 0;
 			while(_g2 < movedItems.length) {
 				var item = movedItems[_g2];
@@ -974,127 +1159,55 @@ graphics_SvgSurface.prototype = $extend(graphics_BaseSurface.prototype,{
 					}
 					eLayer.addChild(item1);
 					break;
+				case 3:
+					var _g21 = item.p;
+					var _g22 = item.fill;
+					var _g23 = item.stroke;
+					var item2 = Xml.createElement("path");
+					var style3 = "";
+					if(_g23 != null) {
+						switch(_g23._hx_index) {
+						case 0:
+							style3 = " stroke:none; ";
+							break;
+						case 1:
+							var _g24 = _g23.width;
+							style3 = "" + (" stroke: " + graphics_GTools.getColor(_g23.c) + "; stroke-width: " + (_g24 == null ? "null" : "" + _g24) + ";");
+							break;
+						}
+					}
+					if(_g22 != null) {
+						switch(_g22._hx_index) {
+						case 0:
+							style3 += " fill:none; ";
+							break;
+						case 1:
+							style3 += " fill: " + graphics_GTools.getColor(_g22.c) + ";";
+							break;
+						}
+					}
+					if(style3 != "") {
+						item2.set("style",style3);
+					}
+					var pathD = graphics_GPathTools.toString(_g21);
+					item2.set("d",pathD);
+					eLayer.addChild(item2);
+					haxe_Log.trace(pathD,{ fileName : "src/graphics/GSurfaceSvg.hx", lineNumber : 133, className : "graphics.GSurfaceSvg", methodName : "render"});
+					break;
 				default:
 				}
 			}
 		}
 		return this.svg;
 	}
-	,__class__: graphics_SvgSurface
+	,__class__: graphics_GSurfaceSvg
 });
-var graphics_CanvasSurface = function() {
-	graphics_BaseSurface.call(this);
+var graphics_GTools = function() { };
+graphics_GTools.__name__ = "graphics.GTools";
+graphics_GTools.getColor = function(c) {
+	return $hxEnums[c.__enum__].__constructs__[c._hx_index]._hx_name.toLowerCase();
 };
-graphics_CanvasSurface.__name__ = "graphics.CanvasSurface";
-graphics_CanvasSurface.__interfaces__ = [graphics_GSurfaceRenderer];
-graphics_CanvasSurface.__super__ = graphics_BaseSurface;
-graphics_CanvasSurface.prototype = $extend(graphics_BaseSurface.prototype,{
-	render: function() {
-		var _this = this.layers;
-		var result = new Array(_this.length);
-		var _g = 0;
-		var _g1 = _this.length;
-		while(_g < _g1) {
-			var i = _g++;
-			result[i] = graphics_GTools.getBoundingBox(_this[i].items);
-		}
-		var boundingRect = graphics_GTools.getBoundingRect(result);
-		var boundingSize = graphics_GTools.getBoundingSize(boundingRect);
-		var canvas = window.document.createElement("canvas");
-		canvas.setAttribute("width",boundingSize.w == null ? "null" : "" + boundingSize.w);
-		canvas.setAttribute("height",boundingSize.h == null ? "null" : "" + boundingSize.h);
-		canvas.style.width = boundingSize.w + "px";
-		canvas.style.height = boundingSize.h + "px";
-		var ctx = canvas.getContext("2d",null);
-		var _g = 0;
-		var _g1 = this.layers;
-		while(_g < _g1.length) {
-			var movedItems = graphics_GTools.moveItems(_g1[_g++].items,-boundingRect.x,-boundingRect.y);
-			var _g2 = 0;
-			while(_g2 < movedItems.length) {
-				var item = movedItems[_g2];
-				++_g2;
-				switch(item._hx_index) {
-				case 0:
-					var _g3 = item.s;
-					ctx.beginPath();
-					ctx.moveTo(item.x1,item.y1);
-					ctx.lineTo(item.x2,item.y2);
-					if(_g3 != null) {
-						switch(_g3._hx_index) {
-						case 0:
-							break;
-						case 1:
-							ctx.strokeStyle = graphics_GTools.getColor(_g3.c);
-							ctx.lineWidth = _g3.width;
-							ctx.stroke();
-							break;
-						}
-					}
-					break;
-				case 1:
-					var _g4 = item.fill;
-					var _g5 = item.stroke;
-					ctx.beginPath();
-					ctx.rect(item.x,item.y,item.w,item.h);
-					switch(_g4._hx_index) {
-					case 0:
-						break;
-					case 1:
-						ctx.fillStyle = graphics_GTools.getColor(_g4.c);
-						ctx.fill();
-						break;
-					}
-					if(_g5 != null) {
-						switch(_g5._hx_index) {
-						case 0:
-							break;
-						case 1:
-							ctx.strokeStyle = graphics_GTools.getColor(_g5.c);
-							ctx.lineWidth = _g5.width;
-							ctx.stroke();
-							break;
-						}
-					}
-					break;
-				case 2:
-					var _g6 = item.w;
-					var _g7 = item.h;
-					var _g8 = item.fill;
-					var _g9 = item.stroke;
-					ctx.beginPath();
-					ctx.ellipse(item.x + _g6 / 2,item.y + _g7 / 2,_g6 / 2,_g7 / 2,Math.PI / 4,0,2 * Math.PI);
-					switch(_g8._hx_index) {
-					case 0:
-						break;
-					case 1:
-						var _g10 = _g8.c;
-						haxe_Log.trace(graphics_GTools.getColor(_g10),{ fileName : "src/graphics/SimpleGraphics.hx", lineNumber : 424, className : "graphics.CanvasSurface", methodName : "render"});
-						ctx.fillStyle = graphics_GTools.getColor(_g10);
-						ctx.fill();
-						break;
-					}
-					if(_g9 != null) {
-						switch(_g9._hx_index) {
-						case 0:
-							break;
-						case 1:
-							ctx.strokeStyle = graphics_GTools.getColor(_g9.c);
-							ctx.lineWidth = _g9.width;
-							ctx.stroke();
-							break;
-						}
-					}
-					break;
-				default:
-				}
-			}
-		}
-		return canvas;
-	}
-	,__class__: graphics_CanvasSurface
-});
-var haxe_StackItem = $hxEnums["haxe.StackItem"] = { __ename__:"haxe.StackItem",__constructs__:null
+var haxe_StackItem = $hxEnums["haxe.StackItem"] = { __ename__:true,__constructs__:null
 	,CFunction: {_hx_name:"CFunction",_hx_index:0,__enum__:"haxe.StackItem",toString:$estr}
 	,Module: ($_=function(m) { return {_hx_index:1,m:m,__enum__:"haxe.StackItem",toString:$estr}; },$_._hx_name="Module",$_.__params__ = ["m"],$_)
 	,FilePos: ($_=function(s,file,line,column) { return {_hx_index:2,s:s,file:file,line:line,column:column,__enum__:"haxe.StackItem",toString:$estr}; },$_._hx_name="FilePos",$_.__params__ = ["s","file","line","column"],$_)
@@ -1258,11 +1371,6 @@ haxe_CallStack.itemToString = function(b,s) {
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = "haxe.IMap";
 haxe_IMap.__isInterface__ = true;
-haxe_IMap.prototype = {
-	get: null
-	,keys: null
-	,__class__: haxe_IMap
-};
 var haxe_Exception = function(message,previous,native) {
 	Error.call(this,message);
 	this.message = message;
@@ -1318,8 +1426,14 @@ haxe_Exception.prototype = $extend(Error.prototype,{
 	,unwrap: function() {
 		return this.__nativeException;
 	}
+	,toString: function() {
+		return this.get_message();
+	}
 	,__shiftStack: function() {
 		this.__skipStack++;
+	}
+	,get_message: function() {
+		return this.message;
 	}
 	,get_native: function() {
 		return this.__nativeException;
@@ -1342,7 +1456,7 @@ haxe_Exception.prototype = $extend(Error.prototype,{
 		}
 	}
 	,__class__: haxe_Exception
-	,__properties__: {get_native:"get_native",get_stack:"get_stack"}
+	,__properties__: {get_native:"get_native",get_stack:"get_stack",get_message:"get_message"}
 });
 var haxe_Log = function() { };
 haxe_Log.__name__ = "haxe.Log";
@@ -1618,12 +1732,6 @@ haxe_ds_StringMap.__name__ = "haxe.ds.StringMap";
 haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
 haxe_ds_StringMap.prototype = {
 	h: null
-	,get: function(key) {
-		return this.h[key];
-	}
-	,keys: function() {
-		return new haxe_ds__$StringMap_StringMapKeyIterator(this.h);
-	}
 	,__class__: haxe_ds_StringMap
 };
 var haxe_ds__$StringMap_StringMapKeyIterator = function(h) {
@@ -1645,19 +1753,6 @@ haxe_ds__$StringMap_StringMapKeyIterator.prototype = {
 		return this.keys[this.current++];
 	}
 	,__class__: haxe_ds__$StringMap_StringMapKeyIterator
-};
-var haxe_io_Bytes = function(data) {
-	this.length = data.byteLength;
-	this.b = new Uint8Array(data);
-	this.b.bufferValue = data;
-	data.hxBytes = this;
-	data.bytes = this.b;
-};
-haxe_io_Bytes.__name__ = "haxe.io.Bytes";
-haxe_io_Bytes.prototype = {
-	length: null
-	,b: null
-	,__class__: haxe_io_Bytes
 };
 var haxe_iterators_ArrayIterator = function(array) {
 	this.current = 0;
@@ -2424,27 +2519,8 @@ js_Boot.__isNativeObj = function(o) {
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
 };
-function tools_ArrayItems_last(a) {
-	return a[a.length - 1];
-}
-function tools_ArrayItems_first(a) {
-	return a[0];
-}
-var tools_EnumTools = function() { };
-tools_EnumTools.__name__ = "tools.EnumTools";
 var utest_Assert = function() { };
 utest_Assert.__name__ = "utest.Assert";
-utest_Assert.processResult = function(cond,getMessage,pos) {
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(getMessage(),pos));
-	}
-	return cond;
-};
 utest_Assert.isTrue = function(cond,msg,pos) {
 	if(utest_Assert.results == null) {
 		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
@@ -2456,578 +2532,6 @@ utest_Assert.isTrue = function(cond,msg,pos) {
 	}
 	return cond;
 };
-utest_Assert.isFalse = function(value,msg,pos) {
-	var cond = value == false;
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected false",pos));
-	}
-	return cond;
-};
-utest_Assert.isNull = function(value,msg,pos) {
-	var cond = value == null;
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected null but it is " + utest_Assert.q(value),pos));
-	}
-	return cond;
-};
-utest_Assert.notNull = function(value,msg,pos) {
-	var cond = value != null;
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected not null",pos));
-	}
-	return cond;
-};
-utest_Assert.is = function(value,type,msg,pos) {
-	return utest_Assert.isOfType(value,type,msg,pos);
-};
-utest_Assert.isOfType = function(value,type,msg,pos) {
-	var cond = js_Boot.__instanceof(value,type);
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected type " + utest_Assert.typeToString(type) + " but it is " + utest_Assert.typeToString(value),pos));
-	}
-	return cond;
-};
-utest_Assert.notEquals = function(expected,value,msg,pos) {
-	var cond = expected != value;
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected " + utest_Assert.q(expected) + " and test value " + utest_Assert.q(value) + " should be different",pos));
-	}
-	return cond;
-};
-utest_Assert.equals = function(expected,value,msg,pos) {
-	var cond = expected == value;
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value),pos));
-	}
-	return cond;
-};
-utest_Assert.match = function(pattern,value,msg,pos) {
-	var cond = pattern.match(value);
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "the value " + utest_Assert.q(value) + " does not match the provided pattern",pos));
-	}
-	return cond;
-};
-utest_Assert.floatEquals = function(expected,value,approx,msg,pos) {
-	var cond = utest_Assert._floatEquals(expected,value,approx);
-	if(utest_Assert.results == null) {
-		throw haxe_Exception.thrown("Assert at " + pos.fileName + ":" + pos.lineNumber + " out of context. Most likely you are trying to assert after a test timeout.");
-	}
-	if(cond) {
-		utest_Assert.results.add(utest_Assertation.Success(pos));
-	} else {
-		utest_Assert.results.add(utest_Assertation.Failure(msg != null ? msg : "expected " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value),pos));
-	}
-	return cond;
-};
-utest_Assert._floatEquals = function(expected,value,approx) {
-	if(isNaN(expected)) {
-		return isNaN(value);
-	} else if(isNaN(value)) {
-		return false;
-	} else if(!isFinite(expected) && !isFinite(value)) {
-		return expected > 0 == value > 0;
-	}
-	if(null == approx) {
-		approx = 1e-5;
-	}
-	return Math.abs(value - expected) <= approx;
-};
-utest_Assert.getTypeName = function(v) {
-	var _g = Type.typeof(v);
-	switch(_g._hx_index) {
-	case 0:
-		return "`null`";
-	case 1:
-		return "Int";
-	case 2:
-		return "Float";
-	case 3:
-		return "Bool";
-	case 4:
-		return "Object";
-	case 5:
-		return "function";
-	case 6:
-		var c = _g.c;
-		return c.__name__;
-	case 7:
-		var e = _g.e;
-		return e.__ename__;
-	case 8:
-		return "`Unknown`";
-	}
-};
-utest_Assert.isIterable = function(v,isAnonym) {
-	if(!Lambda.has(isAnonym ? Reflect.fields(v) : Type.getInstanceFields(js_Boot.getClass(v)),"iterator")) {
-		return false;
-	}
-	return Reflect.isFunction(Reflect.field(v,"iterator"));
-};
-utest_Assert.isIterator = function(v,isAnonym) {
-	var fields = isAnonym ? Reflect.fields(v) : Type.getInstanceFields(js_Boot.getClass(v));
-	if(!Lambda.has(fields,"next") || !Lambda.has(fields,"hasNext")) {
-		return false;
-	}
-	if(Reflect.isFunction(Reflect.field(v,"next"))) {
-		return Reflect.isFunction(Reflect.field(v,"hasNext"));
-	} else {
-		return false;
-	}
-};
-utest_Assert.sameAs = function(expected,value,status,approx) {
-	var texpected = utest_Assert.getTypeName(expected);
-	var tvalue = utest_Assert.getTypeName(value);
-	status.expectedValue = expected;
-	status.actualValue = value;
-	if(texpected != tvalue && !(texpected == "Int" && tvalue == "Float" || texpected == "Float" && tvalue == "Int")) {
-		status.error = "expected type " + texpected + " but it is " + tvalue + (status.path == "" ? "" : " for field " + status.path);
-		return false;
-	}
-	var _g = Type.typeof(expected);
-	switch(_g._hx_index) {
-	case 1:case 2:
-		if(!utest_Assert._floatEquals(expected,value,approx)) {
-			status.error = "expected " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value) + (status.path == "" ? "" : " for field " + status.path);
-			return false;
-		}
-		return true;
-	case 0:case 3:
-		if(expected != value) {
-			status.error = "expected " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value) + (status.path == "" ? "" : " for field " + status.path);
-			return false;
-		}
-		return true;
-	case 4:
-		if(status.recursive || status.path == "") {
-			var tfields = Reflect.fields(value);
-			var fields = Reflect.fields(expected);
-			var path = status.path;
-			var _g1 = 0;
-			while(_g1 < fields.length) {
-				var field = fields[_g1];
-				++_g1;
-				HxOverrides.remove(tfields,field);
-				status.path = path == "" ? field : path + "." + field;
-				if(!Object.prototype.hasOwnProperty.call(value,field)) {
-					status.error = "expected field " + status.path + " does not exist in " + utest_Assert.q(value);
-					return false;
-				}
-				var e = Reflect.field(expected,field);
-				if(Reflect.isFunction(e)) {
-					continue;
-				}
-				if(!utest_Assert.sameAs(e,Reflect.field(value,field),status,approx)) {
-					return false;
-				}
-			}
-			if(tfields.length > 0) {
-				status.error = "the tested object has extra field(s) (" + tfields.join(", ") + ") not included in the expected ones";
-				return false;
-			}
-		}
-		if(utest_Assert.isIterator(expected,true)) {
-			if(!utest_Assert.isIterator(value,true)) {
-				status.error = "expected Iterable but it is not " + (status.path == "" ? "" : " for field " + status.path);
-				return false;
-			}
-			if(status.recursive || status.path == "") {
-				var evalues = Lambda.array({ iterator : function() {
-					return expected;
-				}});
-				var vvalues = Lambda.array({ iterator : function() {
-					return value;
-				}});
-				if(evalues.length != vvalues.length) {
-					status.error = "expected " + evalues.length + " values in Iterator but they are " + vvalues.length + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				var _g2 = evalues.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					status.path = path == "" ? "iterator[" + i + "]" : path + "[" + i + "]";
-					if(!utest_Assert.sameAs(evalues[i],vvalues[i],status,approx)) {
-						status.error = "expected " + utest_Assert.q(status.expectedValue) + " but it is " + utest_Assert.q(status.actualValue) + (status.path == "" ? "" : " for field " + status.path);
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(utest_Assert.isIterable(expected,true)) {
-			if(!utest_Assert.isIterable(value,true)) {
-				status.error = "expected Iterator but it is not " + (status.path == "" ? "" : " for field " + status.path);
-				return false;
-			}
-			if(status.recursive || status.path == "") {
-				var evalues = Lambda.array(expected);
-				var vvalues = Lambda.array(value);
-				if(evalues.length != vvalues.length) {
-					status.error = "expected " + evalues.length + " values in Iterable but they are " + vvalues.length + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				var _g2 = evalues.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					status.path = path == "" ? "iterable[" + i + "]" : path + "[" + i + "]";
-					if(!utest_Assert.sameAs(evalues[i],vvalues[i],status,approx)) {
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		return true;
-	case 5:
-		if(!Reflect.compareMethods(expected,value)) {
-			status.error = "expected same function reference" + (status.path == "" ? "" : " for field " + status.path);
-			return false;
-		}
-		return true;
-	case 6:
-		var c = _g.c;
-		var cexpected = c.__name__;
-		var c = js_Boot.getClass(value);
-		var cvalue = c.__name__;
-		if(cexpected != cvalue) {
-			status.error = "expected instance of " + utest_Assert.q(cexpected) + " but it is " + utest_Assert.q(cvalue) + (status.path == "" ? "" : " for field " + status.path);
-			return false;
-		}
-		if(typeof(expected) == "string") {
-			if(expected == value) {
-				return true;
-			} else {
-				status.error = "expected string '" + Std.string(expected) + "' but it is '" + Std.string(value) + "'";
-				return false;
-			}
-		}
-		if(((expected) instanceof Array)) {
-			if(status.recursive || status.path == "") {
-				if(expected.length != value.length) {
-					status.error = "expected " + Std.string(expected.length) + " elements but they are " + Std.string(value.length) + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				var _g2 = expected.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					status.path = path == "" ? "array[" + i + "]" : path + "[" + i + "]";
-					if(!utest_Assert.sameAs(expected[i],value[i],status,approx)) {
-						status.error = "expected array element at [" + i + "] to have " + utest_Assert.q(status.expectedValue) + " but it is " + utest_Assert.q(status.actualValue) + (status.path == "" ? "" : " for field " + status.path);
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(((expected) instanceof Date)) {
-			if(expected.getTime() != value.getTime()) {
-				status.error = "expected " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value) + (status.path == "" ? "" : " for field " + status.path);
-				return false;
-			}
-			return true;
-		}
-		if(((expected) instanceof haxe_io_Bytes)) {
-			if(status.recursive || status.path == "") {
-				var ebytes = expected;
-				var vbytes = value;
-				if(ebytes.length != vbytes.length) {
-					status.error = "expected " + ebytes.length + " bytes length but it is " + vbytes.length;
-					return false;
-				}
-				var _g1 = 0;
-				var _g2 = ebytes.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					if(ebytes.b[i] != vbytes.b[i]) {
-						status.error = "expected byte #" + i + " to be " + ebytes.b[i] + " but it is " + vbytes.b[i] + (status.path == "" ? "" : " for field " + status.path);
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(js_Boot.__implements(expected,haxe_IMap)) {
-			if(status.recursive || status.path == "") {
-				var map = js_Boot.__cast(expected , haxe_IMap);
-				var vmap = js_Boot.__cast(value , haxe_IMap);
-				var _g1 = [];
-				var k = map.keys();
-				while(k.hasNext()) _g1.push(k.next());
-				var keys = _g1;
-				var _g1 = [];
-				var k = vmap.keys();
-				while(k.hasNext()) _g1.push(k.next());
-				var vkeys = _g1;
-				if(keys.length != vkeys.length) {
-					status.error = "expected " + keys.length + " keys but they are " + vkeys.length + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				while(_g1 < keys.length) {
-					var key = keys[_g1];
-					++_g1;
-					status.path = path == "" ? "hash[" + Std.string(key) + "]" : path + "[" + Std.string(key) + "]";
-					if(!utest_Assert.sameAs(map.get(key),vmap.get(key),status,approx)) {
-						status.error = "expected " + utest_Assert.q(status.expectedValue) + " but it is " + utest_Assert.q(status.actualValue) + (status.path == "" ? "" : " for field " + status.path);
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(utest_Assert.isIterator(expected,false)) {
-			if(status.recursive || status.path == "") {
-				var evalues = Lambda.array({ iterator : function() {
-					return expected;
-				}});
-				var vvalues = Lambda.array({ iterator : function() {
-					return value;
-				}});
-				if(evalues.length != vvalues.length) {
-					status.error = "expected " + evalues.length + " values in Iterator but they are " + vvalues.length + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				var _g2 = evalues.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					status.path = path == "" ? "iterator[" + i + "]" : path + "[" + i + "]";
-					if(!utest_Assert.sameAs(evalues[i],vvalues[i],status,approx)) {
-						status.error = "expected " + utest_Assert.q(status.expectedValue) + " but it is " + utest_Assert.q(status.actualValue) + (status.path == "" ? "" : " for field " + status.path);
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(utest_Assert.isIterable(expected,false)) {
-			if(status.recursive || status.path == "") {
-				var evalues = Lambda.array(expected);
-				var vvalues = Lambda.array(value);
-				if(evalues.length != vvalues.length) {
-					status.error = "expected " + evalues.length + " values in Iterable but they are " + vvalues.length + (status.path == "" ? "" : " for field " + status.path);
-					return false;
-				}
-				var path = status.path;
-				var _g1 = 0;
-				var _g2 = evalues.length;
-				while(_g1 < _g2) {
-					var i = _g1++;
-					status.path = path == "" ? "iterable[" + i + "]" : path + "[" + i + "]";
-					if(!utest_Assert.sameAs(evalues[i],vvalues[i],status,approx)) {
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-		if(status.recursive || status.path == "") {
-			var fields = Type.getInstanceFields(js_Boot.getClass(expected));
-			var path = status.path;
-			var _g1 = 0;
-			while(_g1 < fields.length) {
-				var field = fields[_g1];
-				++_g1;
-				status.path = path == "" ? field : path + "." + field;
-				var e = Reflect.field(expected,field);
-				if(Reflect.isFunction(e)) {
-					continue;
-				}
-				if(!utest_Assert.sameAs(e,Reflect.field(value,field),status,approx)) {
-					return false;
-				}
-			}
-		}
-		return true;
-	case 7:
-		var e = _g.e;
-		var eexpected = e.__ename__;
-		var e = Type.getEnum(value);
-		var evalue = e.__ename__;
-		if(eexpected != evalue) {
-			status.error = "expected enumeration of " + utest_Assert.q(eexpected) + " but it is " + utest_Assert.q(evalue) + (status.path == "" ? "" : " for field " + status.path);
-			return false;
-		}
-		if(status.recursive || status.path == "") {
-			if(expected._hx_index != value._hx_index) {
-				var e = expected;
-				var tmp = "expected enum constructor " + utest_Assert.q($hxEnums[e.__enum__].__constructs__[e._hx_index]._hx_name) + " but it is ";
-				var e = value;
-				status.error = tmp + utest_Assert.q($hxEnums[e.__enum__].__constructs__[e._hx_index]._hx_name) + (status.path == "" ? "" : " for field " + status.path);
-				return false;
-			}
-			var eparams = Type.enumParameters(expected);
-			var vparams = Type.enumParameters(value);
-			var path = status.path;
-			var _g = 0;
-			var _g1 = eparams.length;
-			while(_g < _g1) {
-				var i = _g++;
-				status.path = path == "" ? "enum[" + i + "]" : path + "[" + i + "]";
-				if(!utest_Assert.sameAs(eparams[i],vparams[i],status,approx)) {
-					status.error = "expected enum param " + utest_Assert.q(expected) + " but it is " + utest_Assert.q(value) + (status.path == "" ? "" : " for field " + status.path) + " with " + status.error;
-					return false;
-				}
-			}
-		}
-		return true;
-	case 8:
-		throw haxe_Exception.thrown("Unable to compare two unknown types");
-	}
-};
-utest_Assert.q = function(v) {
-	if(typeof(v) == "string") {
-		return "\"" + StringTools.replace(v,"\"","\\\"") + "\"";
-	} else {
-		return Std.string(v);
-	}
-};
-utest_Assert.same = function(expected,value,recursive,msg,approx,pos) {
-	if(null == approx) {
-		approx = 1e-5;
-	}
-	var status = { recursive : null == recursive ? true : recursive, path : "", error : null, expectedValue : expected, actualValue : value};
-	if(utest_Assert.sameAs(expected,value,status,approx)) {
-		return utest_Assert.pass(msg,pos);
-	} else {
-		return utest_Assert.fail(msg == null ? status.error : msg,pos);
-	}
-};
-utest_Assert.raises = function(method,type,msgNotThrown,msgWrongType,pos) {
-	var name = type != null ? type.__name__ : "Dynamic";
-	try {
-		method();
-	} catch( _g ) {
-		var ex = haxe_Exception.caught(_g).unwrap();
-		if(null == type) {
-			return utest_Assert.pass(null,pos);
-		} else {
-			if(null == msgWrongType) {
-				msgWrongType = "expected throw of type " + name + " but it is " + Std.string(ex);
-			}
-			return utest_Assert.isTrue(js_Boot.__instanceof(ex,type),msgWrongType,pos);
-		}
-	}
-	if(null == msgNotThrown) {
-		msgNotThrown = "exception of type " + name + " not raised";
-	}
-	return utest_Assert.fail(msgNotThrown,pos);
-};
-utest_Assert.allows = function(possibilities,value,msg,pos) {
-	if(Lambda.has(possibilities,value)) {
-		return utest_Assert.isTrue(true,msg,pos);
-	} else {
-		return utest_Assert.fail(msg == null ? "value " + utest_Assert.q(value) + " not found in the expected possibilities " + Std.string(possibilities) : msg,pos);
-	}
-};
-utest_Assert.contains = function(match,values,msg,pos) {
-	if(Lambda.has(values,match)) {
-		return utest_Assert.isTrue(true,msg,pos);
-	} else {
-		return utest_Assert.fail(msg == null ? "values " + utest_Assert.q(values) + " do not contain " + Std.string(match) : msg,pos);
-	}
-};
-utest_Assert.notContains = function(match,values,msg,pos) {
-	if(!Lambda.has(values,match)) {
-		return utest_Assert.isTrue(true,msg,pos);
-	} else {
-		return utest_Assert.fail(msg == null ? "values " + utest_Assert.q(values) + " do contain " + Std.string(match) : msg,pos);
-	}
-};
-utest_Assert.stringContains = function(match,value,msg,pos) {
-	if(value != null && value.indexOf(match) >= 0) {
-		return utest_Assert.isTrue(true,msg,pos);
-	} else {
-		return utest_Assert.fail(msg == null ? "value " + utest_Assert.q(value) + " does not contain " + utest_Assert.q(match) : msg,pos);
-	}
-};
-utest_Assert.stringSequence = function(sequence,value,msg,pos) {
-	if(null == value) {
-		return utest_Assert.fail(msg == null ? "null argument value" : msg,pos);
-	}
-	var p = 0;
-	var _g = 0;
-	while(_g < sequence.length) {
-		var s = sequence[_g];
-		++_g;
-		var p2 = value.indexOf(s,p);
-		if(p2 < 0) {
-			if(msg == null) {
-				msg = "expected '" + s + "' after ";
-				if(p > 0) {
-					var cut = HxOverrides.substr(value,0,p);
-					if(cut.length > 30) {
-						cut = "..." + HxOverrides.substr(cut,-27,null);
-					}
-					msg += " '" + cut + "'";
-				} else {
-					msg += " begin";
-				}
-			}
-			return utest_Assert.fail(msg,pos);
-		}
-		p = p2 + s.length;
-	}
-	return utest_Assert.isTrue(true,msg,pos);
-};
-utest_Assert.pass = function(msg,pos) {
-	if(msg == null) {
-		msg = "pass expected";
-	}
-	return utest_Assert.isTrue(true,msg,pos);
-};
-utest_Assert.fail = function(msg,pos) {
-	if(msg == null) {
-		msg = "failure expected";
-	}
-	return utest_Assert.isTrue(false,msg,pos);
-};
-utest_Assert.warn = function(msg) {
-	utest_Assert.results.add(utest_Assertation.Warning(msg));
-};
 utest_Assert.createAsync = function(f,timeout) {
 	return function() {
 	};
@@ -3036,40 +2540,7 @@ utest_Assert.createEvent = function(f,timeout) {
 	return function(e) {
 	};
 };
-utest_Assert.typeToString = function(t) {
-	try {
-		var _t = js_Boot.getClass(t);
-		if(_t != null) {
-			t = _t;
-		}
-	} catch( _g ) {
-	}
-	try {
-		return t.__name__;
-	} catch( _g ) {
-	}
-	try {
-		var _t = Type.getEnum(t);
-		if(_t != null) {
-			t = _t;
-		}
-	} catch( _g ) {
-	}
-	try {
-		return t.__ename__;
-	} catch( _g ) {
-	}
-	try {
-		return Std.string(Type.typeof(t));
-	} catch( _g ) {
-	}
-	try {
-		return Std.string(t);
-	} catch( _g ) {
-	}
-	return "<unable to retrieve type name>";
-};
-var utest_Assertation = $hxEnums["utest.Assertation"] = { __ename__:"utest.Assertation",__constructs__:null
+var utest_Assertation = $hxEnums["utest.Assertation"] = { __ename__:true,__constructs__:null
 	,Success: ($_=function(pos) { return {_hx_index:0,pos:pos,__enum__:"utest.Assertation",toString:$estr}; },$_._hx_name="Success",$_.__params__ = ["pos"],$_)
 	,Failure: ($_=function(msg,pos) { return {_hx_index:1,msg:msg,pos:pos,__enum__:"utest.Assertation",toString:$estr}; },$_._hx_name="Failure",$_.__params__ = ["msg","pos"],$_)
 	,Error: ($_=function(e,stack) { return {_hx_index:2,e:e,stack:stack,__enum__:"utest.Assertation",toString:$estr}; },$_._hx_name="Error",$_.__params__ = ["e","stack"],$_)
@@ -3085,7 +2556,6 @@ var utest_Async = function(timeoutMs) {
 	if(timeoutMs == null) {
 		timeoutMs = 250;
 	}
-	this.branches = [];
 	this.callbacks = [];
 	this.timedOut = false;
 	this.resolved = false;
@@ -3108,7 +2578,6 @@ utest_Async.prototype = {
 	,timeoutMs: null
 	,startTime: null
 	,timer: null
-	,branches: null
 	,done: function(pos) {
 		if(this.resolved) {
 			if(this.timedOut) {
@@ -3122,55 +2591,6 @@ utest_Async.prototype = {
 		var _g = 0;
 		var _g1 = this.callbacks;
 		while(_g < _g1.length) _g1[_g++]();
-	}
-	,setTimeout: function(timeoutMs,pos) {
-		if(this.resolved) {
-			throw haxe_Exception.thrown("Cannot setTimeout(" + timeoutMs + ") at " + pos.fileName + ":" + pos.lineNumber + " because async is done.");
-		}
-		if(this.timedOut) {
-			throw haxe_Exception.thrown("Cannot setTimeout(" + timeoutMs + ") at " + pos.fileName + ":" + pos.lineNumber + " because async is timed out.");
-		}
-		this.timer.stop();
-		this.timeoutMs = timeoutMs;
-		this.timer = haxe_Timer.delay($bind(this,this.setTimedOutState),timeoutMs - Math.round(1000 * (HxOverrides.now() / 1000 - this.startTime)));
-	}
-	,branch: function(fn,pos) {
-		var branch = new utest_Async(this.timeoutMs);
-		this.branches.push(branch);
-		var _g = $bind(this,this.checkBranches);
-		var pos1 = pos;
-		branch.then(function() {
-			_g(pos1);
-		});
-		if(fn != null) {
-			fn(branch);
-		}
-		return branch;
-	}
-	,checkBranches: function(pos) {
-		var _gthis = this;
-		if(this.resolved) {
-			return;
-		}
-		var _g = 0;
-		var _g1 = this.branches;
-		while(_g < _g1.length) {
-			var branch = _g1[_g];
-			++_g;
-			if(!branch.resolved) {
-				return;
-			}
-			if(branch.timedOut) {
-				this.setTimedOutState();
-				return;
-			}
-		}
-		var branchCount = this.branches.length;
-		haxe_Timer.delay(function() {
-			if(branchCount == _gthis.branches.length) {
-				_gthis.done(pos);
-			}
-		},5);
 	}
 	,then: function(cb) {
 		if(this.resolved) {
@@ -3188,7 +2608,7 @@ utest_Async.prototype = {
 	}
 	,__class__: utest_Async
 };
-var utest__$Dispatcher_EventException = $hxEnums["utest._Dispatcher.EventException"] = { __ename__:"utest._Dispatcher.EventException",__constructs__:null
+var utest__$Dispatcher_EventException = $hxEnums["utest._Dispatcher.EventException"] = { __ename__:true,__constructs__:null
 	,StopPropagation: {_hx_name:"StopPropagation",_hx_index:0,__enum__:"utest._Dispatcher.EventException",toString:$estr}
 };
 utest__$Dispatcher_EventException.__constructs__ = [utest__$Dispatcher_EventException.StopPropagation];
@@ -3196,28 +2616,11 @@ var utest_Dispatcher = function() {
 	this.handlers = [];
 };
 utest_Dispatcher.__name__ = "utest.Dispatcher";
-utest_Dispatcher.stop = function() {
-	throw haxe_Exception.thrown(utest__$Dispatcher_EventException.StopPropagation);
-};
 utest_Dispatcher.prototype = {
 	handlers: null
 	,add: function(h) {
 		this.handlers.push(h);
 		return h;
-	}
-	,remove: function(h) {
-		var _g = 0;
-		var _g1 = this.handlers.length;
-		while(_g < _g1) {
-			var i = _g++;
-			if(Reflect.compareMethods(this.handlers[i],h)) {
-				return this.handlers.splice(i,1)[0];
-			}
-		}
-		return null;
-	}
-	,clear: function() {
-		this.handlers = [];
 	}
 	,dispatch: function(e) {
 		try {
@@ -3233,38 +2636,14 @@ utest_Dispatcher.prototype = {
 			}
 		}
 	}
-	,has: function() {
-		return this.handlers.length > 0;
-	}
 	,__class__: utest_Dispatcher
 };
 var utest_Notifier = function() {
 	this.handlers = [];
 };
 utest_Notifier.__name__ = "utest.Notifier";
-utest_Notifier.stop = function() {
-	throw haxe_Exception.thrown(utest__$Dispatcher_EventException.StopPropagation);
-};
 utest_Notifier.prototype = {
 	handlers: null
-	,add: function(h) {
-		this.handlers.push(h);
-		return h;
-	}
-	,remove: function(h) {
-		var _g = 0;
-		var _g1 = this.handlers.length;
-		while(_g < _g1) {
-			var i = _g++;
-			if(Reflect.compareMethods(this.handlers[i],h)) {
-				return this.handlers.splice(i,1)[0];
-			}
-		}
-		return null;
-	}
-	,clear: function() {
-		this.handlers = [];
-	}
 	,dispatch: function() {
 		try {
 			var list = this.handlers.slice();
@@ -3278,9 +2657,6 @@ utest_Notifier.prototype = {
 				throw _g;
 			}
 		}
-	}
-	,has: function() {
-		return this.handlers.length > 0;
 	}
 	,__class__: utest_Notifier
 };
@@ -3319,7 +2695,6 @@ utest_TestHandler.prototype = {
 	,onTimeout: null
 	,onComplete: null
 	,onPrecheck: null
-	,precheck: null
 	,wasBound: null
 	,execute: function() {
 		var _gthis = this;
@@ -3615,21 +2990,11 @@ utest_ITestHandler.prototype = $extend(utest_TestHandler.prototype,{
 	,__class__: utest_ITestHandler
 });
 var utest_IgnoredFixture = {};
-utest_IgnoredFixture.__properties__ = {get_ignoreReason:"get_ignoreReason",get_isIgnored:"get_isIgnored"};
 utest_IgnoredFixture.NotIgnored = function() {
 	return null;
 };
 utest_IgnoredFixture.Ignored = function(reason) {
 	return reason != null ? reason : "";
-};
-utest_IgnoredFixture._new = function(reason) {
-	return reason;
-};
-utest_IgnoredFixture.get_isIgnored = function(this1) {
-	return this1 != null;
-};
-utest_IgnoredFixture.get_ignoreReason = function(this1) {
-	return this1;
 };
 var utest_Runner = function() {
 	this.executedFixtures = 0;
@@ -3990,8 +3355,6 @@ utest__$Runner_ITestRunner.prototype = {
 	}
 	,__class__: utest__$Runner_ITestRunner
 };
-var utest_AccessoryName = function() { };
-utest_AccessoryName.__name__ = "utest.AccessoryName";
 var utest_TestFixture = function(target,method,setup,teardown,setupAsync,teardownAsync) {
 	this.isITest = false;
 	this.target = target;
@@ -4023,15 +3386,6 @@ utest_TestFixture.prototype = {
 	,test: null
 	,setupMethod: null
 	,teardownMethod: null
-	,checkMethod: function(name,arg) {
-		var field = Reflect.field(this.target,name);
-		if(field == null) {
-			throw haxe_Exception.thrown(arg + " function " + name + " is not a field of target");
-		}
-		if(!Reflect.isFunction(field)) {
-			throw haxe_Exception.thrown(arg + " function " + name + " is not a function");
-		}
-	}
 	,getIgnored: function() {
 		var metasForTestMetas = Reflect.getProperty(haxe_rtti_Meta.getFields(js_Boot.getClass(this.target)),this.method);
 		if(metasForTestMetas == null || !Object.prototype.hasOwnProperty.call(metasForTestMetas,"Ignored")) {
@@ -4161,9 +3515,6 @@ utest_ui_common_ClassResult.prototype = {
 	,get: function(method) {
 		return this.fixtures.h[method];
 	}
-	,exists: function(method) {
-		return Object.prototype.hasOwnProperty.call(this.fixtures.h,method);
-	}
 	,methodNames: function(errorsHavePriority) {
 		if(errorsHavePriority == null) {
 			errorsHavePriority = true;
@@ -4282,13 +3633,13 @@ utest_ui_common_FixtureResult.prototype = {
 	}
 	,__class__: utest_ui_common_FixtureResult
 };
-var utest_ui_common_HeaderDisplayMode = $hxEnums["utest.ui.common.HeaderDisplayMode"] = { __ename__:"utest.ui.common.HeaderDisplayMode",__constructs__:null
+var utest_ui_common_HeaderDisplayMode = $hxEnums["utest.ui.common.HeaderDisplayMode"] = { __ename__:true,__constructs__:null
 	,AlwaysShowHeader: {_hx_name:"AlwaysShowHeader",_hx_index:0,__enum__:"utest.ui.common.HeaderDisplayMode",toString:$estr}
 	,NeverShowHeader: {_hx_name:"NeverShowHeader",_hx_index:1,__enum__:"utest.ui.common.HeaderDisplayMode",toString:$estr}
 	,ShowHeaderWithResults: {_hx_name:"ShowHeaderWithResults",_hx_index:2,__enum__:"utest.ui.common.HeaderDisplayMode",toString:$estr}
 };
 utest_ui_common_HeaderDisplayMode.__constructs__ = [utest_ui_common_HeaderDisplayMode.AlwaysShowHeader,utest_ui_common_HeaderDisplayMode.NeverShowHeader,utest_ui_common_HeaderDisplayMode.ShowHeaderWithResults];
-var utest_ui_common_SuccessResultsDisplayMode = $hxEnums["utest.ui.common.SuccessResultsDisplayMode"] = { __ename__:"utest.ui.common.SuccessResultsDisplayMode",__constructs__:null
+var utest_ui_common_SuccessResultsDisplayMode = $hxEnums["utest.ui.common.SuccessResultsDisplayMode"] = { __ename__:true,__constructs__:null
 	,AlwaysShowSuccessResults: {_hx_name:"AlwaysShowSuccessResults",_hx_index:0,__enum__:"utest.ui.common.SuccessResultsDisplayMode",toString:$estr}
 	,NeverShowSuccessResults: {_hx_name:"NeverShowSuccessResults",_hx_index:1,__enum__:"utest.ui.common.SuccessResultsDisplayMode",toString:$estr}
 	,ShowSuccessResultsWithNoErrors: {_hx_name:"ShowSuccessResultsWithNoErrors",_hx_index:2,__enum__:"utest.ui.common.SuccessResultsDisplayMode",toString:$estr}
@@ -4300,7 +3651,6 @@ utest_ui_common_IReport.__isInterface__ = true;
 utest_ui_common_IReport.prototype = {
 	displaySuccessResults: null
 	,displayHeader: null
-	,setHandler: null
 	,__class__: utest_ui_common_IReport
 };
 var utest_ui_common_PackageResult = function(packageName) {
@@ -4593,45 +3943,6 @@ utest_ui_common_ResultAggregator.prototype = {
 			haxe_Log.trace(msg,{ fileName : "utest/ui/common/ResultAggregator.hx", lineNumber : 54, className : "utest.ui.common.ResultAggregator", methodName : "checkNonITest"});
 		}
 	}
-	,getOrCreatePackage: function(pack,flat,ref) {
-		if(ref == null) {
-			ref = this.root;
-		}
-		if(pack == null || pack == "") {
-			return ref;
-		}
-		if(flat) {
-			if(ref.existsPackage(pack)) {
-				return ref.getPackage(pack);
-			}
-			var p = new utest_ui_common_PackageResult(pack);
-			ref.addPackage(p);
-			return p;
-		} else {
-			var parts = pack.split(".");
-			var _g = 0;
-			while(_g < parts.length) ref = this.getOrCreatePackage(parts[_g++],true,ref);
-			return ref;
-		}
-	}
-	,getOrCreateClass: function(pack,cls,setup,teardown) {
-		if(pack.existsClass(cls)) {
-			return pack.getClass(cls);
-		}
-		var c = new utest_ui_common_ClassResult(cls,setup,teardown);
-		pack.addClass(c);
-		return c;
-	}
-	,createFixture: function(result) {
-		var f = new utest_ui_common_FixtureResult(result.method);
-		var _g_head = result.assertations.h;
-		while(_g_head != null) {
-			var val = _g_head.item;
-			_g_head = _g_head.next;
-			f.add(val);
-		}
-		return f;
-	}
 	,progress: function(e) {
 		this.root.addResult(e.result,this.flattenPackage);
 		this.onProgress.dispatch(e);
@@ -4743,13 +4054,6 @@ utest_ui_common_ResultStats.prototype = {
 		this.addWarnings(other.warnings);
 		this.addIgnores(other.ignores);
 	}
-	,subtract: function(other) {
-		this.addSuccesses(-other.successes);
-		this.addFailures(-other.failures);
-		this.addErrors(-other.errors);
-		this.addWarnings(-other.warnings);
-		this.addIgnores(-other.ignores);
-	}
 	,wire: function(dependant) {
 		dependant.onAddSuccesses.add($bind(this,this.addSuccesses));
 		dependant.onAddFailures.add($bind(this,this.addFailures));
@@ -4757,14 +4061,6 @@ utest_ui_common_ResultStats.prototype = {
 		dependant.onAddWarnings.add($bind(this,this.addWarnings));
 		dependant.onAddIgnores.add($bind(this,this.addIgnores));
 		this.sum(dependant);
-	}
-	,unwire: function(dependant) {
-		dependant.onAddSuccesses.remove($bind(this,this.addSuccesses));
-		dependant.onAddFailures.remove($bind(this,this.addFailures));
-		dependant.onAddErrors.remove($bind(this,this.addErrors));
-		dependant.onAddWarnings.remove($bind(this,this.addWarnings));
-		dependant.onAddIgnores.remove($bind(this,this.addIgnores));
-		this.subtract(dependant);
 	}
 	,__class__: utest_ui_common_ResultStats
 };
@@ -5515,29 +4811,6 @@ utest_utils_AccessoriesUtils.getTeardownClass = function(accessories) {
 		return accessories.teardownClass;
 	}
 };
-var utest_utils_AsyncUtils = function() { };
-utest_utils_AsyncUtils.__name__ = "utest.utils.AsyncUtils";
-utest_utils_AsyncUtils.orResolved = function(_async) {
-	if(_async == null) {
-		return utest_Async.getResolved();
-	} else {
-		return _async;
-	}
-};
-var utest_utils_Misc = function() { };
-utest_utils_Misc.__name__ = "utest.utils.Misc";
-utest_utils_Misc.isOfType = function(v,t) {
-	return js_Boot.__instanceof(v,t);
-};
-var utest_utils_Print = function() { };
-utest_utils_Print.__name__ = "utest.utils.Print";
-utest_utils_Print.immediately = function(msg) {
-	console.log(msg);
-};
-utest_utils_Print.startCase = function(caseName) {
-};
-utest_utils_Print.startTest = function(name) {
-};
 function $getIterator(o) { if( o instanceof Array ) return new haxe_iterators_ArrayIterator(o); else return o.iterator(); }
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $global.$haxeUID++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
 $global.$haxeUID |= 0;
@@ -5548,8 +4821,6 @@ if( String.fromCodePoint == null ) String.fromCodePoint = function(c) { return c
 String.prototype.__class__ = String;
 String.__name__ = "String";
 Array.__name__ = "Array";
-Date.prototype.__class__ = Date;
-Date.__name__ = "Date";
 var Int = { };
 var Dynamic = { };
 var Float = Number;
@@ -5575,11 +4846,6 @@ haxe_xml_Parser.escapes = (function($this) {
 	$r = h;
 	return $r;
 }(this));
-utest_TestHandler.POLLING_TIME = 10;
-utest_AccessoryName.SETUP_NAME = "setup";
-utest_AccessoryName.SETUP_CLASS_NAME = "setupClass";
-utest_AccessoryName.TEARDOWN_NAME = "teardown";
-utest_AccessoryName.TEARDOWN_CLASS_NAME = "teardownClass";
 utest_ui_text_HtmlReport.platform = "javascript";
 TestSimpleGraphics_main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
