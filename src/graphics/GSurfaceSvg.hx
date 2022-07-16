@@ -17,17 +17,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 	}
 
 	public function render():Xml {
-		final layerAreas:Array<GArea> = this.layers.map(layer -> {
-			final items:GItems = switch layer {
-				case Layer(items, p, s, o, r):
-					items;
-			}
-			return items.getBoundingArea();
-		});
-
-		final boundingArea:GArea = GArea.combineAreas(layerAreas);
-		final boundingSize:GSize = boundingArea.getSize();
-		final movePoint = boundingArea.getXY();
+		super.beforeRender();
 
 		this.svg = Xml.parse('<svg width="${boundingSize.w}" height="${boundingSize.h}"></svg>').firstElement();
 

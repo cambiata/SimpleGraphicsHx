@@ -48,4 +48,23 @@ class GSurfaceBase {
 		for (item in items)
 			this.layerItems.push(item);
 	}
+
+	var boundingArea:GArea = null;
+	var boundingSize:GSize = null;
+	var movePoint:GPoint = null;
+
+	function beforeRender():Void {
+		final layerAreas:Array<GArea> = this.layers.map(layer -> {
+			// var layerStroke:GStroke = null;
+			final items:GItems = switch layer {
+				case Layer(items, p, s, o, r):
+					items;
+			}
+			return items.getBoundingArea();
+		});
+
+		this.boundingArea = GArea.combineAreas(layerAreas);
+		this.boundingSize = boundingArea.getSize();
+		this.movePoint = boundingArea.getXY();
+	}
 }

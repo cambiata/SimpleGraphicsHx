@@ -32,11 +32,13 @@ enum GValue {
 	AValue(v:Map<Float, Float>);
 }
 
-enum GPoint {
+/*
+	enum GPoint {
 	SPoint(x:Float, y:Float);
 	APoint(v:Map<Float, {x:Float, y:Float}>);
-}
-
+	}
+ */
+typedef GPoint = {x:Float, y:Float};
 typedef GSize = {w:Float, h:Float};
 typedef GRectBase = {x:Float, y:Float, w:Float, h:Float}
 
@@ -120,7 +122,7 @@ abstract GArea(GAreaBase) from GAreaBase to GAreaBase {
 			h: this.y2 - this.y
 		};
 
-	public function getXY():{x:Float, y:Float}
+	public function getXY():GPoint
 		return {x: this.x, y: this.y};
 
 	static public function combineAreas(areas:Array<GArea>):GArea {
