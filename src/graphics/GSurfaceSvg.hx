@@ -14,8 +14,8 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 
 	public function new(scalingShapes:Float = 1, scalingLines:Float = 1) {
 		super();
-		// this.scalingShapes = scalingShapes;
-		// this.scalingLines = scalingLines;
+		this.scalingShapes = scalingShapes;
+		this.scalingLines = scalingLines;
 	}
 
 	public function render():Xml {

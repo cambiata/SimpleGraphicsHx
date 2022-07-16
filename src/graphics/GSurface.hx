@@ -52,8 +52,8 @@ class GSurfaceBase {
 	var boundingArea:GArea = null;
 	var boundingSize:GSize = null;
 	var movePoint:GPoint = null;
-	var scalingShapes:Float = 2;
-	var scalingLines:Float = 2;
+	var scalingShapes:Float = 1;
+	var scalingLines:Float = 1;
 
 	function beforeRender():Void {
 		// scale layers

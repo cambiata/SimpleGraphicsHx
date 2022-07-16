@@ -12,8 +12,8 @@ using Std;
 class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.CanvasElement> {
 	public function new(scalingShapes:Float = 1, scalingLines:Float = 1) {
 		super();
-		// this.scalingShapes = scalingShapes;
-		// this.scalingLines = scalingLines;
+		this.scalingShapes = scalingShapes;
+		this.scalingLines = scalingLines;
 	}
 
 	public function render():js.html.CanvasElement {

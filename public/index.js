@@ -980,8 +980,8 @@ graphics_ISurfaceRenderer.__name__ = "graphics.ISurfaceRenderer";
 graphics_ISurfaceRenderer.__isInterface__ = true;
 graphics_ISurfaceRenderer.__interfaces__ = [graphics_ISurface];
 var graphics_GSurfaceBase = function() {
-	this.scalingLines = 2;
-	this.scalingShapes = 2;
+	this.scalingLines = 1;
+	this.scalingShapes = 1;
 	this.movePoint = null;
 	this.boundingSize = null;
 	this.boundingArea = null;
@@ -1035,6 +1035,8 @@ var graphics_GSurfaceCanvas = function(scalingShapes,scalingLines) {
 		scalingShapes = 1;
 	}
 	graphics_GSurfaceBase.call(this);
+	this.scalingShapes = scalingShapes;
+	this.scalingLines = scalingLines;
 };
 graphics_GSurfaceCanvas.__name__ = "graphics.GSurfaceCanvas";
 graphics_GSurfaceCanvas.__interfaces__ = [graphics_ISurfaceRenderer];
@@ -1135,6 +1137,8 @@ var graphics_GSurfaceSvg = function(scalingShapes,scalingLines) {
 		scalingShapes = 1;
 	}
 	graphics_GSurfaceBase.call(this);
+	this.scalingShapes = scalingShapes;
+	this.scalingLines = scalingLines;
 };
 graphics_GSurfaceSvg.__name__ = "graphics.GSurfaceSvg";
 graphics_GSurfaceSvg.__interfaces__ = [graphics_ISurfaceRenderer];
