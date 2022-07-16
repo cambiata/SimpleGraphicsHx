@@ -6,6 +6,7 @@ import graphics.GCore;
 using StringTools;
 using tools.ArrayItems;
 using Math;
+using Std;
 
 enum GPathSegment {
 	M(x:Float, y:Float);
@@ -129,32 +130,39 @@ class GPathTools {
 		final path:GPath = [];
 		for (segment in segments) {
 			var values = segment.trim().substr(1).replace(' ', ',').split(',').map(i -> Std.parseFloat(i));
-			var item:GPathSegment = switch segment.charAt(0) {
+			switch segment.charAt(0) {
 				case 'M':
 					if (values.length != 2)
 						throw new Exception('There should be 2 values for a M segment ($values)');
-					M(values[0], values[1]);
+					path.push(M(values[0], values[1]));
 				case 'L':
-					if (values.length != 2)
+					if (values.length % 2 != 0)
 						throw new Exception('There should be 2 values for a L segment ($values)');
-					L(values[0], values[1]);
+
+					for (i in 0...(values.length / 2).int())
+						path.push(L(values[i * 2], values[i * 2 + 1]));
+
 				case 'Q':
-					if (values.length != 4)
+					if (values.length % 4 != 0)
 						throw new Exception('There should be 4 values for a Q segment ($values)');
-					Q(values[0], values[1], values[2], values[3]);
+
+					for (i in 0...(values.length / 4).int())
+						path.push(Q(values[i * 4 + 0], values[i * 4 + 1], values[i * 4 + 2], values[i * 4 + 3]));
+
 				case 'C':
-					if (values.length != 6)
+					if (values.length % 6 != 0)
 						throw new Exception('There should be 6 values for a C segment ($values)');
-					C(values[0], values[1], values[2], values[3], values[4], values[5]);
+
+					for (i in 0...(values.length / 6).int())
+						path.push(C(values[i * 6 + 0], values[i * 6 + 1], values[i * 6 + 2], values[i * 6 + 3], values[i * 6 + 4], values[i * 6 + 5]));
 				case 'Z' | 'z':
 					// trace(values);
 					// throw new Exception('There should be 0 values for a Z segment ($values)');
-					Z;
+					path.push(Z);
 				default:
 					trace(segment.charAt(0));
 					null;
 			}
-			path.push(item);
 		}
 		return path;
 	}
