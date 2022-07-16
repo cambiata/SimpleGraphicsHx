@@ -261,11 +261,11 @@ TestA.prototype = {
 		new graphics_GSurfaceSvg();
 	}
 	,testTrueType: function() {
-		haxe_Log.trace(new truetype_TrueTypeGPath(this.font).drawText("&",10,250,200),{ fileName : "test/TestTrueType.hx", lineNumber : 50, className : "TestA", methodName : "testTrueType"});
+		haxe_Log.trace(new truetype_TrueTypeGPath(this.font).drawText("&",10,250,200),{ fileName : "test/TestTrueType.hx", lineNumber : 49, className : "TestA", methodName : "testTrueType"});
 	}
 	,testLayer: function() {
 		var path = new truetype_TrueTypeGPath(this.font).drawText("Hello world!",0,0,80);
-		haxe_Log.trace(path,{ fileName : "test/TestTrueType.hx", lineNumber : 62, className : "TestA", methodName : "testLayer"});
+		haxe_Log.trace(path,{ fileName : "test/TestTrueType.hx", lineNumber : 61, className : "TestA", methodName : "testLayer"});
 		var items = [graphics_GItem.Ellipse(-50,-50,100,100,graphics_GFill.Solid(graphics_GColor.Gray),graphics_GStroke.Stroke(graphics_GColor.Black,10)),graphics_GItem.Rect(-100,-100,100,100,graphics_GFill.Solid(graphics_GColor.Purple),graphics_GStroke.Stroke(graphics_GColor.Yellow,10)),graphics_GItem.Rect(0,0,100,100,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Path(path,graphics_GFill.Solid(graphics_GColor.Black),graphics_GStroke.Stroke(graphics_GColor.Red,0))];
 		var svgSurface = new graphics_GSurfaceSvg();
 		svgSurface.addItems(items);
@@ -273,7 +273,7 @@ TestA.prototype = {
 		var canvasSurface = new graphics_GSurfaceCanvas();
 		canvasSurface.addItems(items);
 		TestTrueType_outputToBrowser(svg,canvasSurface.render());
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestTrueType.hx", lineNumber : 96, className : "TestA", methodName : "testLayer"});
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestTrueType.hx", lineNumber : 95, className : "TestA", methodName : "testLayer"});
 	}
 	,__initializeUtest__: function() {
 		var _gthis = this;
@@ -2743,164 +2743,6 @@ js_Boot.__isNativeObj = function(o) {
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
 };
-var truetype_TrueTypeBase = function(font) {
-	this.font = font;
-};
-truetype_TrueTypeBase.__name__ = "truetype.TrueTypeBase";
-truetype_TrueTypeBase.prototype = {
-	font: null
-	,scaleX: null
-	,scaleY: null
-	,textY: null
-	,textX: null
-	,moveTo: function(x,y) {
-		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 1090, className : "truetype.TrueTypeBase", methodName : "moveTo"});
-	}
-	,lineTo: function(x,y) {
-		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 1094, className : "truetype.TrueTypeBase", methodName : "lineTo"});
-	}
-	,quadraticCurveTo: function(px,py,x,y) {
-		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 1098, className : "truetype.TrueTypeBase", methodName : "quadraticCurveTo"});
-	}
-	,z: function() {
-		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 1102, className : "truetype.TrueTypeBase", methodName : "z"});
-	}
-	,calcGlyph: function(index,glyphX,scaleX,scaleY) {
-		if(scaleY == null) {
-			scaleY = 0;
-		}
-		if(scaleX == null) {
-			scaleX = 0;
-		}
-		var glyph = this.font.readGlyph(index);
-		if(glyph == null) {
-			return;
-		}
-		var ends = glyph.contourEnds.slice();
-		ends.unshift(-1);
-		var segments = [];
-		var _g = 0;
-		var _g1 = ends.length - 1;
-		while(_g < _g1) {
-			var s = _g++;
-			var segment = [];
-			var _g2 = ends[s] + 1;
-			var _g3 = ends[s + 1] + 1;
-			while(_g2 < _g3) segment.push(glyph.points[_g2++]);
-			segment.push(segment[0]);
-			segments.push(segment);
-		}
-		var _g = 0;
-		while(_g < segments.length) {
-			var segment = segments[_g];
-			++_g;
-			var _g1 = 0;
-			var _g2 = segment.length;
-			while(_g1 < _g2) {
-				var idx = _g1++;
-				var _g3 = segment[idx - 2];
-				var _g4 = segment[idx - 1];
-				var _g5 = segment[idx];
-				if(_g3 == null) {
-					if(_g4 == null) {
-						this.moveTo(_g5.x + glyphX,_g5.y);
-					} else if(_g5.onCurve) {
-						this.lineTo(_g5.x + glyphX,_g5.y);
-					}
-				} else {
-					var _g6 = _g4.onCurve;
-					var _g7 = _g5.onCurve;
-					if(_g3.onCurve) {
-						if(_g6) {
-							if(_g7 == true) {
-								this.lineTo(_g5.x + glyphX,_g5.y);
-							}
-						} else if(_g7) {
-							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
-						} else {
-							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,(_g4.x + _g5.x) / 2 + glyphX,(_g4.y + _g5.y) / 2);
-						}
-					} else if(_g6) {
-						if(_g7 == true) {
-							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
-						}
-					} else if(_g7) {
-						this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
-					} else {
-						this.quadraticCurveTo(_g4.x + glyphX,_g4.y,(_g4.x + _g5.x) / 2 + glyphX,(_g4.y + _g5.y) / 2);
-					}
-				}
-			}
-		}
-		this.z();
-	}
-	,calcText: function(text,textX,textY,textSize) {
-		if(textSize == null) {
-			textSize = 20;
-		}
-		if(textY == null) {
-			textY = 0;
-		}
-		if(textX == null) {
-			textX = 0;
-		}
-		this.scaleX = textSize / this.font.unitsPerEm;
-		this.scaleY = -textSize / this.font.unitsPerEm;
-		this.textX = textX;
-		this.textY = textY;
-		this.font.resetKern();
-		var glyphX = 0;
-		var _g = 0;
-		var _g1 = text.length;
-		while(_g < _g1) {
-			var index = this.font.mapCode(HxOverrides.cca(text,_g++));
-			var metrics = this.font.getHorizontalMetrics(index);
-			this.calcGlyph(index,glyphX + this.font.nextKern(index).x,this.scaleX,this.scaleY);
-			glyphX += metrics.advanceWidth;
-		}
-	}
-	,__class__: truetype_TrueTypeBase
-};
-var truetype_ITrueTypeBase = function() { };
-truetype_ITrueTypeBase.__name__ = "truetype.ITrueTypeBase";
-truetype_ITrueTypeBase.__isInterface__ = true;
-var truetype_TrueTypeGPath = function(font) {
-	this.glyphSegments = [];
-	truetype_TrueTypeBase.call(this,font);
-};
-truetype_TrueTypeGPath.__name__ = "truetype.TrueTypeGPath";
-truetype_TrueTypeGPath.__interfaces__ = [truetype_ITrueTypeBase];
-truetype_TrueTypeGPath.__super__ = truetype_TrueTypeBase;
-truetype_TrueTypeGPath.prototype = $extend(truetype_TrueTypeBase.prototype,{
-	moveTo: function(x,y) {
-		this.glyphSegments.push(graphics_GPathSegment.M(Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
-	}
-	,lineTo: function(x,y) {
-		this.glyphSegments.push(graphics_GPathSegment.L(Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
-	}
-	,quadraticCurveTo: function(px,py,x,y) {
-		this.glyphSegments.push(graphics_GPathSegment.Q(Math.round((px * this.scaleX + this.textX) * 1000) / 1000,Math.round((py * this.scaleY + this.textY) * 1000) / 1000,Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
-	}
-	,z: function() {
-		this.glyphSegments.push(graphics_GPathSegment.Z);
-	}
-	,glyphSegments: null
-	,drawText: function(text,textX,textY,textSize) {
-		if(textSize == null) {
-			textSize = 20;
-		}
-		if(textY == null) {
-			textY = 0;
-		}
-		if(textX == null) {
-			textX = 0;
-		}
-		this.glyphSegments = [];
-		this.calcText(text,textX,textY,textSize);
-		return this.glyphSegments;
-	}
-	,__class__: truetype_TrueTypeGPath
-});
 var truetype_Assert = function() { };
 truetype_Assert.__name__ = "truetype.Assert";
 truetype_Assert.assert = function(condition,message) {
@@ -3310,8 +3152,8 @@ truetype_TrueTypeFont.prototype = {
 		file.data.set_position(this.tables.h["kern"].offset);
 		var version = (file.data.readByte() << 8 | file.data.readByte()) >>> 0;
 		var nTables = (file.data.readByte() << 8 | file.data.readByte()) >>> 0;
-		haxe_Log.trace("Kern Table version: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 508, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [version]});
-		haxe_Log.trace("Kern nTables: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 509, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [nTables]});
+		haxe_Log.trace("Kern Table version: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 508, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [version]});
+		haxe_Log.trace("Kern nTables: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 509, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [nTables]});
 		var _g = 0;
 		while(_g < nTables) {
 			++_g;
@@ -3319,12 +3161,12 @@ truetype_TrueTypeFont.prototype = {
 			var length = (file.data.readByte() << 8 | file.data.readByte()) >>> 0;
 			var coverage = (file.data.readByte() << 8 | file.data.readByte()) >>> 0;
 			var format = coverage >> 8;
-			haxe_Log.trace("Kerning subtable version %s format %s length %s coverage: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 517, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [version,format,length,coverage]});
+			haxe_Log.trace("Kerning subtable version %s format %s length %s coverage: %s",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 517, className : "truetype.TrueTypeFont", methodName : "readKernTable", customParams : [version,format,length,coverage]});
 			var kern = null;
 			if(format == 0) {
 				kern = new truetype_Kern0Table(file,(coverage & 1) == 0,(coverage & 4) != 0);
 			} else {
-				haxe_Log.trace("Unknown format -- skip",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/Truetype.hx", lineNumber : 522, className : "truetype.TrueTypeFont", methodName : "readKernTable"});
+				haxe_Log.trace("Unknown format -- skip",{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 522, className : "truetype.TrueTypeFont", methodName : "readKernTable"});
 				file.data.set_position(file.data.pos + length);
 			}
 			if(kern != null) {
@@ -3656,6 +3498,164 @@ truetype_TrueTypeFont.prototype = {
 	}
 	,__class__: truetype_TrueTypeFont
 };
+var truetype_ITrueTypeBase = function() { };
+truetype_ITrueTypeBase.__name__ = "truetype.ITrueTypeBase";
+truetype_ITrueTypeBase.__isInterface__ = true;
+var truetype_TrueTypeBase = function(font) {
+	this.font = font;
+};
+truetype_TrueTypeBase.__name__ = "truetype.TrueTypeBase";
+truetype_TrueTypeBase.prototype = {
+	font: null
+	,scaleX: null
+	,scaleY: null
+	,textY: null
+	,textX: null
+	,moveTo: function(x,y) {
+		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 1090, className : "truetype.TrueTypeBase", methodName : "moveTo"});
+	}
+	,lineTo: function(x,y) {
+		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 1094, className : "truetype.TrueTypeBase", methodName : "lineTo"});
+	}
+	,quadraticCurveTo: function(px,py,x,y) {
+		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 1098, className : "truetype.TrueTypeBase", methodName : "quadraticCurveTo"});
+	}
+	,z: function() {
+		throw new haxe_exceptions_NotImplementedException(null,null,{ fileName : "../../_Fonts/TrueTypeHx/src/truetype/TrueType.hx", lineNumber : 1102, className : "truetype.TrueTypeBase", methodName : "z"});
+	}
+	,calcGlyph: function(index,glyphX,scaleX,scaleY) {
+		if(scaleY == null) {
+			scaleY = 0;
+		}
+		if(scaleX == null) {
+			scaleX = 0;
+		}
+		var glyph = this.font.readGlyph(index);
+		if(glyph == null) {
+			return;
+		}
+		var ends = glyph.contourEnds.slice();
+		ends.unshift(-1);
+		var segments = [];
+		var _g = 0;
+		var _g1 = ends.length - 1;
+		while(_g < _g1) {
+			var s = _g++;
+			var segment = [];
+			var _g2 = ends[s] + 1;
+			var _g3 = ends[s + 1] + 1;
+			while(_g2 < _g3) segment.push(glyph.points[_g2++]);
+			segment.push(segment[0]);
+			segments.push(segment);
+		}
+		var _g = 0;
+		while(_g < segments.length) {
+			var segment = segments[_g];
+			++_g;
+			var _g1 = 0;
+			var _g2 = segment.length;
+			while(_g1 < _g2) {
+				var idx = _g1++;
+				var _g3 = segment[idx - 2];
+				var _g4 = segment[idx - 1];
+				var _g5 = segment[idx];
+				if(_g3 == null) {
+					if(_g4 == null) {
+						this.moveTo(_g5.x + glyphX,_g5.y);
+					} else if(_g5.onCurve) {
+						this.lineTo(_g5.x + glyphX,_g5.y);
+					}
+				} else {
+					var _g6 = _g4.onCurve;
+					var _g7 = _g5.onCurve;
+					if(_g3.onCurve) {
+						if(_g6) {
+							if(_g7 == true) {
+								this.lineTo(_g5.x + glyphX,_g5.y);
+							}
+						} else if(_g7) {
+							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
+						} else {
+							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,(_g4.x + _g5.x) / 2 + glyphX,(_g4.y + _g5.y) / 2);
+						}
+					} else if(_g6) {
+						if(_g7 == true) {
+							this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
+						}
+					} else if(_g7) {
+						this.quadraticCurveTo(_g4.x + glyphX,_g4.y,_g5.x + glyphX,_g5.y);
+					} else {
+						this.quadraticCurveTo(_g4.x + glyphX,_g4.y,(_g4.x + _g5.x) / 2 + glyphX,(_g4.y + _g5.y) / 2);
+					}
+				}
+			}
+		}
+		this.z();
+	}
+	,calcText: function(text,textX,textY,textSize) {
+		if(textSize == null) {
+			textSize = 20;
+		}
+		if(textY == null) {
+			textY = 0;
+		}
+		if(textX == null) {
+			textX = 0;
+		}
+		this.scaleX = textSize / this.font.unitsPerEm;
+		this.scaleY = -textSize / this.font.unitsPerEm;
+		this.textX = textX;
+		this.textY = textY;
+		this.font.resetKern();
+		var glyphX = 0;
+		var _g = 0;
+		var _g1 = text.length;
+		while(_g < _g1) {
+			var index = this.font.mapCode(HxOverrides.cca(text,_g++));
+			var metrics = this.font.getHorizontalMetrics(index);
+			this.calcGlyph(index,glyphX + this.font.nextKern(index).x,this.scaleX,this.scaleY);
+			glyphX += metrics.advanceWidth;
+		}
+	}
+	,__class__: truetype_TrueTypeBase
+};
+var truetype_TrueTypeGPath = function(font) {
+	this.glyphSegments = [];
+	truetype_TrueTypeBase.call(this,font);
+};
+truetype_TrueTypeGPath.__name__ = "truetype.TrueTypeGPath";
+truetype_TrueTypeGPath.__interfaces__ = [truetype_ITrueTypeBase];
+truetype_TrueTypeGPath.__super__ = truetype_TrueTypeBase;
+truetype_TrueTypeGPath.prototype = $extend(truetype_TrueTypeBase.prototype,{
+	moveTo: function(x,y) {
+		this.glyphSegments.push(graphics_GPathSegment.M(Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
+	}
+	,lineTo: function(x,y) {
+		this.glyphSegments.push(graphics_GPathSegment.L(Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
+	}
+	,quadraticCurveTo: function(px,py,x,y) {
+		this.glyphSegments.push(graphics_GPathSegment.Q(Math.round((px * this.scaleX + this.textX) * 1000) / 1000,Math.round((py * this.scaleY + this.textY) * 1000) / 1000,Math.round((x * this.scaleX + this.textX) * 1000) / 1000,Math.round((y * this.scaleY + this.textY) * 1000) / 1000));
+	}
+	,z: function() {
+		this.glyphSegments.push(graphics_GPathSegment.Z);
+	}
+	,glyphSegments: null
+	,drawText: function(text,textX,textY,textSize) {
+		if(textSize == null) {
+			textSize = 20;
+		}
+		if(textY == null) {
+			textY = 0;
+		}
+		if(textX == null) {
+			textX = 0;
+		}
+		this.glyphSegments = [];
+		this.calcText(text,textX,textY,textSize);
+		return this.glyphSegments;
+	}
+	,__class__: truetype_TrueTypeGPath
+});
 var utest_Assert = function() { };
 utest_Assert.__name__ = "utest.Assert";
 utest_Assert.isTrue = function(cond,msg,pos) {

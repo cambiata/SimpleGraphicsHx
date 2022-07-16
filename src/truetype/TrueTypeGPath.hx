@@ -1,6 +1,6 @@
 package truetype;
 
-import truetype.Truetype;
+import truetype.TrueType;
 import graphics.GPath;
 
 @:access(truetype.TrueTypeFont)

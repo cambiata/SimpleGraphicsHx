@@ -4,7 +4,7 @@ import graphics.GPath;
 import graphics.GCore;
 import graphics.GItems;
 import graphics.GSurfaceSvg;
-import truetype.Truetype;
+import truetype.TrueType;
 import haxe.io.BytesData;
 import haxe.io.Bytes;
 import haxe.Resource;
