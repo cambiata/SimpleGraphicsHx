@@ -146,4 +146,14 @@ abstract GArea(GAreaBase) from GAreaBase to GAreaBase {
 		this.y2 += y;
 		return this;
 	}
+
+	public function scale(amount:Float) {
+		if (amount == 1.0)
+			return this;
+		this.x *= amount;
+		this.y *= amount;
+		this.x2 *= amount;
+		this.y2 *= amount;
+		return this;
+	}
 }

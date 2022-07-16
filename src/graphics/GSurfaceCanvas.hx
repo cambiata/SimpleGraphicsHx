@@ -10,8 +10,10 @@ using Std;
 
 #if js
 class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.CanvasElement> {
-	public function new() {
+	public function new(scalingShapes:Float = 1, scalingLines:Float = 1) {
 		super();
+		// this.scalingShapes = scalingShapes;
+		// this.scalingLines = scalingLines;
 	}
 
 	public function render():js.html.CanvasElement {
@@ -27,7 +29,7 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.Ca
 
 		for (layer in layers) {
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
-			final movedItems = items.move(-movePoint.x, -movePoint.y);
+			final movedItems = items.move(-this.movePoint.x, -this.movePoint.y);
 			var stroke:GStroke = null;
 			var fill:GFill = null;
 			var path2d:Path2D = null;

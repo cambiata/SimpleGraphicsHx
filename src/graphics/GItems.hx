@@ -85,6 +85,9 @@ class GItemsTools {
 		if (scaleStroke == null)
 			scaleStroke = scaleShape;
 
+		if (scaleShape == 1.0 && scaleStroke == 1.0) // don't scale if unneccesary
+			return items;
+
 		function fStroke(s:GStroke):GStroke
 			return switch s {
 				case null: null;
@@ -98,7 +101,7 @@ class GItemsTools {
 					GItem.Line(x1 * scaleShape, y1 * scaleShape, x2 * scaleShape, y2 * scaleShape, fStroke(s));
 				case Rect(x, y, w, h, f, s):
 					GItem.Rect(x * scaleShape, y * scaleShape, w * scaleShape, h * scaleShape, f, fStroke(s));
-				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x * scaleShape, y * scaleShape, w * scaleShape, h * scaleShape, f, s);
+				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x * scaleShape, y * scaleShape, w * scaleShape, h * scaleShape, f, fStroke(s));
 				case Path(path, f, s):
 					return GItem.Path(path.scale(scaleShape), f, fStroke(s));
 				case Text(x, y, s, f, size, b, i):

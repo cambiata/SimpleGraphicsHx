@@ -27,7 +27,7 @@ interface ISurfaceRenderer<T> extends ISurface {
 }
 
 class GSurfaceBase {
-	final layers:Array<GLayer> = [];
+	var layers:Array<GLayer> = [];
 	var layerItems:GItems;
 
 	public function new() {
@@ -52,8 +52,18 @@ class GSurfaceBase {
 	var boundingArea:GArea = null;
 	var boundingSize:GSize = null;
 	var movePoint:GPoint = null;
+	var scalingShapes:Float = 2;
+	var scalingLines:Float = 2;
 
 	function beforeRender():Void {
+		// scale layers
+		this.layers = this.layers.map(layer -> {
+			return switch layer {
+				case Layer(items, p, s, o, r):
+					Layer(items.scale(this.scalingShapes, this.scalingLines), p, s, o, r);
+			}
+		});
+
 		final layerAreas:Array<GArea> = this.layers.map(layer -> {
 			// var layerStroke:GStroke = null;
 			final items:GItems = switch layer {

@@ -12,8 +12,10 @@ using Std;
 class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 	var svg:Xml;
 
-	public function new() {
+	public function new(scalingShapes:Float = 1, scalingLines:Float = 1) {
 		super();
+		// this.scalingShapes = scalingShapes;
+		// this.scalingLines = scalingLines;
 	}
 
 	public function render():Xml {
@@ -26,7 +28,6 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 			this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
 			final movedItems = items.move(-movePoint.x, -movePoint.y);
-
 			for (item in movedItems) {
 				switch item {
 					case Line(x1, y1, x2, y2, s):
