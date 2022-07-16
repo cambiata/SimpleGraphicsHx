@@ -10,16 +10,16 @@ class TrueTypeGPath extends TrueTypeBase implements ITrueTypeBase<GPath> {
 	}
 
 	override function moveTo(x:Float, y:Float):Void {
-		this.glyphSegments.push(M(round3(x * this.scaleX + this.textX), round3(y * this.scaleY + this.textY)));
+		this.glyphSegments.push(M(r3(x * this.scaleX + this.textX), r3(y * this.scaleY + this.textY)));
 	}
 
 	override function lineTo(x:Float, y:Float):Void {
-		this.glyphSegments.push(L(round3(x * this.scaleX + this.textX), round3(y * this.scaleY + this.textY)));
+		this.glyphSegments.push(L(r3(x * this.scaleX + this.textX), r3(y * this.scaleY + this.textY)));
 	}
 
 	override function quadraticCurveTo(px:Float, py:Float, x:Float, y:Float):Void {
-		this.glyphSegments.push(Q(round3(px * this.scaleX + this.textX), round3(py * this.scaleY + this.textY), round3(x * this.scaleX + this.textX),
-			round3(y * this.scaleY + this.textY)));
+		this.glyphSegments.push(Q(r3(px * this.scaleX + this.textX), r3(py * this.scaleY + this.textY), r3(x * this.scaleX + this.textX),
+			r3(y * this.scaleY + this.textY)));
 	}
 
 	override function z():Void {

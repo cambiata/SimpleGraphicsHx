@@ -4,6 +4,7 @@ import haxe.Exception;
 import graphics.GCore;
 
 using StringTools;
+using graphics.GTools;
 using tools.ArrayItems;
 using Math;
 using Std;
@@ -169,16 +170,17 @@ class GPathTools {
 
 	static public function toString(path:GPath):String {
 		var s = '';
+
 		for (segment in path) {
 			switch segment {
 				case M(x, y):
-					s += 'M$x $y';
+					s += 'M${x.r2()} ${y.r2()}';
 				case L(x, y):
-					s += 'L$x $y';
+					s += 'L${x.r2()} ${y.r2()}';
 				case Q(x1, y1, x, y):
-					s += 'Q$x1 $y1 $x $y';
+					s += 'Q${x1.r2()} ${y1.r2()} ${x.r2()} ${y.r2()}';
 				case C(x1, y1, x2, y2, x, y):
-					s += 'C$x1 $y1 $x2 $y2 $x $y';
+					s += 'C${x1.r2()} ${y1.r2()}1 ${x2.r2()} ${y2.r2()} ${x.r2()} ${y.r2()}';
 				case Z:
 					s += 'Z';
 			}
