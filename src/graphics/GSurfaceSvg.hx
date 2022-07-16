@@ -21,13 +21,14 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 	public function render():Xml {
 		super.beforeRender();
 
-		this.svg = Xml.parse('<svg width="${boundingSize.w}" height="${boundingSize.h}"></svg>').firstElement();
+		this.svg = Xml.parse('<svg width="${this.boundingSize.w}" height="${this.boundingSize.h}" viewBox="0 0 ${this.boundingSize.w} ${this.boundingSize.h}"></svg>')
+			.firstElement();
 
 		for (layer in layers) {
 			final eLayer = Xml.createElement('g');
 			this.svg.addChild(eLayer);
 			final items = layer.extract(Layer(items, p, s, o, r) => items);
-			final movedItems = items.move(-movePoint.x, -movePoint.y);
+			final movedItems = items.move(-this.movePoint.x, -this.movePoint.y);
 			for (item in movedItems) {
 				switch item {
 					case Line(x1, y1, x2, y2, s):
