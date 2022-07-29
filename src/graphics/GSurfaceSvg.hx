@@ -40,7 +40,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						//
 						var style = '';
 						switch s {
-							case null:
+							case null: style += ' stroke:none; ';
 							case Stroke(c, w): style += 'stroke: ${c.getColor()}; stroke-width: ${w.string()};';
 							case None: style += ' stroke:none; ';
 							default:
@@ -59,13 +59,13 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						//
 						var style = '';
 						switch s {
-							case null:
+							case null: style += ' stroke:none; ';
 							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
 						switch f {
-							case null:
+							case null: style += ' fill:none; ';
 							case Solid(c): style += ' fill: ${c.getColor()};';
 							case None: style += ' fill:none; ';
 							default:
@@ -84,13 +84,13 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						//
 						var style = '';
 						switch s {
-							case null:
+							case null: style += ' stroke:none; ';
 							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
 						switch f {
-							case null:
+							case null: style += ' fill:none; ';
 							case Solid(c): style += ' fill: ${c.getColor()};';
 							case None: style += ' fill:none; ';
 							default:
@@ -104,13 +104,13 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						final item = Xml.createElement('path');
 						var style = '';
 						switch s {
-							case null:
+							case null: style += ' stroke:none; ';
 							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
 						switch f {
-							case null:
+							case null: style += ' fill:none; ';
 							case Solid(c): style += ' fill: ${c.getColor()};';
 							case None: style += ' fill:none; ';
 							default:

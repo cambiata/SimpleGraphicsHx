@@ -110,4 +110,12 @@ class GItemsTools {
 		});
 		return newItems;
 	}
+
+	static public function toGItemRect(rect:GRect, fill:GFill = null, stroke:GStroke = null):GItem {
+		if (fill == null)
+			fill = Solid(Lightgray);
+		if (stroke == null)
+			stroke = Stroke(Black, 1);
+		return Rect(rect.x, rect.y, rect.w, rect.h, fill, stroke);
+	}
 }

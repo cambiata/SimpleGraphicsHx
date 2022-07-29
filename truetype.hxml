@@ -16,6 +16,6 @@
 
 --next
 
-# --interp
+--interp
 # --cmd node test.js
 

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\..\\_Fonts\\TrueTypeHx"
+		}
+	],
+	"settings": {
+		"svg.preview.background": "editor"
+	}
+}

@@ -3,6 +3,8 @@ package truetype;
 import truetype.TrueType;
 import graphics.GPath;
 
+using Std;
+
 @:access(truetype.TrueTypeFont)
 class TrueTypeGPath extends TrueTypeBase implements ITrueTypeBase<GPath> {
 	public function new(font:TrueTypeFont) {
@@ -32,5 +34,17 @@ class TrueTypeGPath extends TrueTypeBase implements ITrueTypeBase<GPath> {
 		this.glyphSegments = [];
 		this.calcText(text, textX, textY, textSize);
 		return glyphSegments;
+	}
+
+	public function drawChar(charCode:Int, textX:Float = 0, textY:Float = 0, textSize:Float = 20):GPath {
+		this.glyphSegments = [];
+		this.calcChar(charCode, textX, textY, textSize);
+		return glyphSegments;
+	}
+
+	public function test(idx:Int) {
+		trace('char idx: $idx');
+		final glyph = this.font.readGlyph(idx);
+		trace(glyph.string());
 	}
 }

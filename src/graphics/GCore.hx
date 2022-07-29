@@ -18,6 +18,7 @@ enum GColor {
 	Green;
 	Yellow;
 	Purple;
+	Lightgray;
 	Gray;
 	White;
 	Black;
@@ -40,6 +41,15 @@ enum GValue {
  */
 typedef GPoint = {x:Float, y:Float};
 typedef GSize = {w:Float, h:Float};
+typedef GRectsBase = Array<GRect>;
+
+@:forward(iterator, push, keyValueIterator)
+abstract GRects(GRectsBase) from GRectsBase {
+	@:from static public function fromGRect(r:GRect):GRects {
+		return [r];
+	}
+}
+
 typedef GRectBase = {x:Float, y:Float, w:Float, h:Float}
 
 @:using(GCore.GRectTools)
@@ -59,13 +69,40 @@ class GRectTools {
 	static public function inflate(rect:GRect, x:Float, y:Float = null):GRect {
 		if (y == null)
 			y = x;
-		return {
-			x: rect.x - x,
-			y: rect.y - y,
-			w: rect.w + x,
-			h: rect.h + y
-		};
+		rect.x -= x;
+		rect.y -= y;
+		rect.w = rect.w + x;
+		rect.h = rect.w + x;
+		return rect;
 	}
+
+	static public function move(rect:GRect, x:Null<Float>, y:Null<Float>):GRect {
+		if (x == null)
+			x = 0;
+		if (y == null)
+			y = 0;
+		if (x == 0 && y == 0)
+			return rect;
+		rect.x = rect.x + x;
+		rect.y = rect.y + y;
+		return rect;
+	}
+
+	static public function overlapX(left:GRect, right:GRect):Float {
+		if ((right.y + right.h) <= left.y)
+			return 0;
+		if (right.y >= (left.y + left.h))
+			return 0;
+		return (left.x + left.w) - right.x;
+	}
+
+	// public function overlapX(other:GRectangle, xFactor:Float = 0):Float {
+	// 	if (other.bottom <= get_top())
+	// 		return 0;
+	// 	if (other.top >= get_bottom())
+	// 		return 0;
+	// 	return get_right() - other.left - xFactor;
+	// }
 }
 
 typedef GAreaBase = {x:Float, y:Float, x2:Float, y2:Float};
