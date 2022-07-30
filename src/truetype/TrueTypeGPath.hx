@@ -36,7 +36,7 @@ class TrueTypeGPath extends TrueTypeBase implements ITrueTypeBase<GPath> {
 		return glyphSegments;
 	}
 
-	public function drawChar(charCode:Int, textX:Float = 0, textY:Float = 0, textSize:Float = 20):GPath {
+	public function drawChar(charCode:Int, textX:Float = 0, textY:Float = 0, textSize:Float = 20):String {
 		this.glyphSegments = [];
 		this.calcChar(charCode, textX, textY, textSize);
 		return glyphSegments;
