@@ -14,36 +14,36 @@ import truetype.TrueTypeGPath;
 using tools.ObjectTools;
 using graphics.GTools;
 
-enum abstract MFontGlyph(Int) from Int {
-	var CLEF_G = 38;
-	var CLEF_F = 63;
-	var CLEF_C = 66;
-	// // //
-	var NOTEHEAD_LONGA = 85;
-	var NOTEHEAD_BREVIS = 162;
-	var NOTEHEAD_WHOLE = 113;
-	var NOTEHEAD_WHITE = 729;
-	var NOTEHEAD_BLACK = 339;
-	// //
-	var FIVELINES = 61;
-	// //
-	var ACCIDENTAL_FLAT = 98;
-	var ACCIDENTAL_NEUTRAL = 110;
-	var ACCIDENTAL_SHARP = 35;
-	//
-	var NUMBER_0 = 48;
-	var NUMBER_1 = 49;
-	var NUMBER_2 = 50;
-	var NUMBER_3 = 51;
-	var NUMBER_4 = 52;
-	var NUMBER_5 = 53;
-	var NUMBER_6 = 54;
-	var NUMBER_7 = 55;
-	var NUMBER_8 = 56;
-	var NUMBER_9 = 57;
-	//
-	var BARLINE_DOUBLE = 47;
-}
+// enum abstract MFontGlyph(Int) from Int {
+// 	var CLEF_G = 38;
+// 	var CLEF_F = 63;
+// 	var CLEF_C = 66;
+// 	// // //
+// 	var NOTEHEAD_LONGA = 85;
+// 	var NOTEHEAD_BREVIS = 162;
+// 	var NOTEHEAD_WHOLE = 113;
+// 	var NOTEHEAD_WHITE = 729;
+// 	var NOTEHEAD_BLACK = 339;
+// 	// //
+// 	var FIVELINES = 61;
+// 	// //
+// 	var ACCIDENTAL_FLAT = 98;
+// 	var ACCIDENTAL_NEUTRAL = 110;
+// 	var ACCIDENTAL_SHARP = 35;
+// 	//
+// 	var NUMBER_0 = 48;
+// 	var NUMBER_1 = 49;
+// 	var NUMBER_2 = 50;
+// 	var NUMBER_3 = 51;
+// 	var NUMBER_4 = 52;
+// 	var NUMBER_5 = 53;
+// 	var NUMBER_6 = 54;
+// 	var NUMBER_7 = 55;
+// 	var NUMBER_8 = 56;
+// 	var NUMBER_9 = 57;
+// 	//
+// 	var BARLINE_DOUBLE = 47;
+// }
 
 function main() {
 	// testPair();
@@ -69,23 +69,20 @@ class TestA implements utest.ITest {
 		final surface = new GSurfaceSvg();
 	}
 
-	function testTrueType() {
+	function XtestTrueType() {
 		final valueMap = AbstractEnumTools.getValueMap(MFontGlyph);
 		trace(valueMap);
-
 		for (name => char in valueMap) {
 			var n:String = name;
 			var c:Int = cast char;
 			var text = String.fromCharCode(c);
 			trace('=================== $n $c >$text<');
-
 			// final text = String.fromCharCode(c);
 			try {
 				final textSize = 200;
 				final textX = 10;
 				final textY = 250;
 				final ttGPath = new truetype.TrueTypeGPath(this.font);
-
 				// ttGPath.test(c);
 				// var path = ttGPath.drawText(text, textX, textY, textSize);
 				var path = ttGPath.drawChar(c, textX, textY, textSize);
