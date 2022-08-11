@@ -48,6 +48,16 @@ abstract GRects(GRectsBase) from GRectsBase {
 	@:from static public function fromGRect(r:GRect):GRects {
 		return [r];
 	}
+
+	public function overlapX(rightRects:GRects):Float {
+		var overlap:Float = .0;
+		for (rect in this) {
+			for (rightRect in rightRects) {
+				overlap = Math.max(overlap, rect.overlapX(rightRect));
+			}
+		}
+		return overlap;
+	}
 }
 
 typedef GRectBase = {x:Float, y:Float, w:Float, h:Float}
@@ -62,6 +72,14 @@ abstract GRect(GRectBase) from GRectBase to GRectBase {
 			w: w,
 			h: h
 		};
+	}
+
+	public function overlapX(right:GRect):Float {
+		if ((right.y + right.h) <= this.y)
+			return 0;
+		if (right.y >= (this.y + this.h))
+			return 0;
+		return (this.x + this.w) - right.x;
 	}
 }
 
@@ -88,14 +106,13 @@ class GRectTools {
 		return rect;
 	}
 
-	static public function overlapX(left:GRect, right:GRect):Float {
-		if ((right.y + right.h) <= left.y)
-			return 0;
-		if (right.y >= (left.y + left.h))
-			return 0;
-		return (left.x + left.w) - right.x;
-	}
-
+	// static public function overlapX(left:GRect, right:GRect):Float {
+	// 	if ((right.y + right.h) <= left.y)
+	// 		return 0;
+	// 	if (right.y >= (left.y + left.h))
+	// 		return 0;
+	// 	return (left.x + left.w) - right.x;
+	// }
 	// public function overlapX(other:GRectangle, xFactor:Float = 0):Float {
 	// 	if (other.bottom <= get_top())
 	// 		return 0;
@@ -192,5 +209,9 @@ abstract GArea(GAreaBase) from GAreaBase to GAreaBase {
 		this.x2 *= amount;
 		this.y2 *= amount;
 		return this;
+	}
+
+	public function toRect():GRect {
+		return new GRect(this.x, this.y, this.x2 - this.x, this.y2 - this.y);
 	}
 }
