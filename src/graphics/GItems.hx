@@ -11,7 +11,7 @@ enum GItem {
 	Rect(x:Float, y:Float, w:Float, h:Float, fill:GFill, stroke:GStroke);
 	Ellipse(x:Float, y:Float, w:Float, h:Float, fill:GFill, stroke:GStroke);
 	Path(p:GPath, fill:GFill, stroke:GStroke);
-	Text(x:Float, y:Float, s:String, font:String, size:Float, bold:Bool, italic:Bool);
+	Text(x:Float, y:Float, s:String, font:String, size:Float, bold:Bool, italic:Bool, color:GColor);
 }
 
 @:using(graphics.GItems.GItemsTools)
@@ -29,8 +29,8 @@ class GItemsTools {
 				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x + mx, y + my, w, h, f, s);
 				case Path(path, f, s):
 					return GItem.Path(path.move(mx, my), f, s);
-				case Text(x, y, s, f, size, b, i):
-					GItem.Text(x + mx, y + my, s, f, size, b, i);
+				case Text(x, y, s, f, size, b, i, c):
+					GItem.Text(x + mx, y + my, s, f, size, b, i, c);
 			}
 		});
 		return newItems;
@@ -46,7 +46,7 @@ class GItemsTools {
 				case Path(path, f, s):
 					path.getBoundingArea();
 				default:
-					null;
+					new GArea(0, 0, 0, 0);
 			}
 		}
 		function getItemHalfStrokeWidth(item:GItem):Float {
@@ -104,8 +104,8 @@ class GItemsTools {
 				case Ellipse(x, y, w, h, f, s): GItem.Ellipse(x * scaleShape, y * scaleShape, w * scaleShape, h * scaleShape, f, fStroke(s));
 				case Path(path, f, s):
 					return GItem.Path(path.scale(scaleShape), f, fStroke(s));
-				case Text(x, y, s, f, size, b, i):
-					GItem.Text(x * scaleShape, y * scaleShape, s, f, size * scaleShape, b, i);
+				case Text(x, y, s, f, size, b, i, c):
+					GItem.Text(x * scaleShape, y * scaleShape, s, f, size * scaleShape, b, i, c);
 			}
 		});
 		return newItems;

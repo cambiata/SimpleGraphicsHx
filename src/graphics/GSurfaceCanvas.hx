@@ -57,6 +57,10 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.Ca
 						ctx.beginPath();
 						var pathString:String = path.toString();
 						path2d = new Path2D(pathString);
+					case Text(x, y, text, family, size, bold, italic, color):
+						ctx.font = '${size}px $family';
+						ctx.fillStyle = color.string();
+						ctx.fillText(text, x, y);
 					default:
 				}
 

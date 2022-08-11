@@ -68,7 +68,7 @@ class TestA implements utest.ITest {
 	}
 
 	#if js
-	function xtestLayer() {
+	function testLayer() {
 		// final items:Array<GItem> = [
 		// Ellipse(-50, -50, 100, 100, Solid(Yellow), None),
 		// Line(0, 0, 100, -100, Stroke(Purple, 5)),
@@ -79,38 +79,36 @@ class TestA implements utest.ITest {
 
 		final items:GItems = [
 			//
-			Ellipse(50, 50, 100, 100, GFill.Solid(Gray), GStroke.Stroke(Black, 10)),
+			Ellipse(50, 50, 100, 100, GFill.Solid(Gray), GStroke.Stroke(Black, 1)),
 			Path(GPath.fromString('M0 0L100 0L100 100L0 100L0 0 '), GFill.Solid(Red), GStroke.Stroke(Blue, 10)),
 			Path(GPath.fromString('M100 100L200 100L200 200L100 200L100 100 '), GFill.Solid(Yellow), GStroke.Stroke(Purple, 10)),
-			// Rect(100, 100, 100, 100, GFill.Solid(Yellow), Stroke(Green, 10)),
+			Text(0, 20, 'Hello, baby!', 'Arial', 20, false, false, White),
 		];
+		// output
+		outputToBrowser(items);
+		utest.Assert.isTrue(true);
+	}
 
+	// helper functions -----------------------------------------------
+
+	function outputToBrowser(items:GItems) {
 		// render to svg
 		final sSurface = new GSurfaceSvg();
 		sSurface.addItems(items);
 		final svg = sSurface.render();
 
 		// render to canvas
-
 		final cSurface = new GSurfaceCanvas();
 		cSurface.addItems(items);
 		final canvas = cSurface.render();
 
-		// output
-		outputToBrowser(svg, canvas);
-
-		utest.Assert.isTrue(true);
-	}
-
-	// helper functions -----------------------------------------------
-
-	function outputToBrowser(svgXml:Xml, canvas:js.html.CanvasElement) {
+		//----------------------------------------------
 		final outputEl = js.Browser.document.getElementById('output');
 		final row = js.Browser.document.createDivElement();
 		row.classList.add('row');
 		row.appendChild(canvas);
 		final svgDiv = js.Browser.document.createDivElement();
-		svgDiv.innerHTML = svgXml.toString();
+		svgDiv.innerHTML = svg.toString();
 		row.appendChild(svgDiv);
 		outputEl.appendChild(row);
 	}

@@ -122,7 +122,16 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						item.set('d', pathD);
 
 						eLayer.addChild(item);
+					case Text(x, y, text, family, size, bold, italic, color):
+						final sFontWeight = bold ? 'font-weight="bold"' : '';
+						final sFontColor = color != null ? 'style="fill: $color"' : '';
+						final sFontStyle = italic ? 'font-style="italic"' : '';
+						var s = '<text x="$x" y="$y" font-size="$size" font-family="$family" $sFontWeight $sFontStyle $sFontColor>$text</text>';
+						final item:Xml = Xml.parse(s);
+						eLayer.addChild(item);
+
 					default:
+						trace('UNSUPPORDED ITEM: ' + item);
 				}
 			}
 		}

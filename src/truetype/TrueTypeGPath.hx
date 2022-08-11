@@ -1,6 +1,6 @@
 package truetype;
 
-import truetype.TrueType;
+import truetype.TrueTypeFont;
 import graphics.GPath;
 
 using Std;
