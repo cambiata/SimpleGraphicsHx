@@ -190,6 +190,14 @@ abstract GArea(GAreaBase) from GAreaBase to GAreaBase {
 		return this;
 	}
 
+	public function move(x:Float, y:Float) {
+		this.x += x;
+		this.y += y;
+		this.x2 += x;
+		this.y2 += y;
+		return this;
+	}
+
 	public function toRect():GRect {
 		return new GRect(this.x, this.y, this.x2 - this.x, this.y2 - this.y);
 	}

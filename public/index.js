@@ -239,14 +239,15 @@ TestA.prototype = {
 		new graphics_GSurfaceSvg();
 	}
 	,testLayer: function() {
-		this.outputToBrowser([graphics_GItem.Ellipse(50,50,100,100,graphics_GFill.Solid(graphics_GColor.Gray),graphics_GStroke.Stroke(graphics_GColor.Black,1)),graphics_GItem.Path(graphics_GPath.fromString("M0 0L100 0L100 100L0 100L0 0 "),graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Path(graphics_GPath.fromString("M100 100L200 100L200 200L100 200L100 100 "),graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.Stroke(graphics_GColor.Purple,10)),graphics_GItem.Text(0,20,"Hello, baby!","Arial",20,false,false,graphics_GColor.White)]);
-		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 89, className : "TestA", methodName : "testLayer"});
+		this.outputToBrowser([graphics_GItem.Ellipse(50,50,100,100,graphics_GFill.Solid(graphics_GColor.Gray),graphics_GStroke.Stroke(graphics_GColor.Black,1)),graphics_GItem.Path(graphics_GPath.fromString("M0 0L100 0L100 100L0 100L0 0 "),0,0,graphics_GFill.Solid(graphics_GColor.Red),graphics_GStroke.Stroke(graphics_GColor.Blue,10)),graphics_GItem.Path(graphics_GPath.fromString("M0 0L100 0L100 100L0 100L0 0 "),100,100,graphics_GFill.Solid(graphics_GColor.Yellow),graphics_GStroke.Stroke(graphics_GColor.Purple,10)),graphics_GItem.Text(0,30,"Hello, baby!","Arial",36,false,false,graphics_GColor.Black)]);
+		utest_Assert.isTrue(true,null,{ fileName : "test/TestSimpleGraphics.hx", lineNumber : 90, className : "TestA", methodName : "testLayer"});
 	}
 	,outputToBrowser: function(items) {
-		var sSurface = new graphics_GSurfaceSvg();
+		var scale = 2;
+		var sSurface = new graphics_GSurfaceSvg(scale,scale);
 		sSurface.addItems(items);
 		var svg = sSurface.render();
-		var cSurface = new graphics_GSurfaceCanvas();
+		var cSurface = new graphics_GSurfaceCanvas(scale,scale);
 		cSurface.addItems(items);
 		var canvas = cSurface.render();
 		var outputEl = window.document.getElementById("output");
@@ -524,11 +525,18 @@ graphics_GArea.inflate = function(this1,x,y) {
 	this1.y2 += y;
 	return this1;
 };
+graphics_GArea.move = function(this1,x,y) {
+	this1.x += x;
+	this1.y += y;
+	this1.x2 += x;
+	this1.y2 += y;
+	return this1;
+};
 var graphics_GItem = $hxEnums["graphics.GItem"] = { __ename__:true,__constructs__:null
 	,Line: ($_=function(x1,y1,x2,y2,s) { return {_hx_index:0,x1:x1,y1:y1,x2:x2,y2:y2,s:s,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Line",$_.__params__ = ["x1","y1","x2","y2","s"],$_)
 	,Rect: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:1,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Rect",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
 	,Ellipse: ($_=function(x,y,w,h,fill,stroke) { return {_hx_index:2,x:x,y:y,w:w,h:h,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Ellipse",$_.__params__ = ["x","y","w","h","fill","stroke"],$_)
-	,Path: ($_=function(p,fill,stroke) { return {_hx_index:3,p:p,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Path",$_.__params__ = ["p","fill","stroke"],$_)
+	,Path: ($_=function(p,x,y,fill,stroke) { return {_hx_index:3,p:p,x:x,y:y,fill:fill,stroke:stroke,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Path",$_.__params__ = ["p","x","y","fill","stroke"],$_)
 	,Text: ($_=function(x,y,s,font,size,bold,italic,color) { return {_hx_index:4,x:x,y:y,s:s,font:font,size:size,bold:bold,italic:italic,color:color,__enum__:"graphics.GItem",toString:$estr}; },$_._hx_name="Text",$_.__params__ = ["x","y","s","font","size","bold","italic","color"],$_)
 };
 graphics_GItem.__constructs__ = [graphics_GItem.Line,graphics_GItem.Rect,graphics_GItem.Ellipse,graphics_GItem.Path,graphics_GItem.Text];
@@ -553,7 +561,7 @@ graphics_GItemsTools.move = function(items,mx,my) {
 			tmp = graphics_GItem.Ellipse(item.x + mx,item.y + my,item.w,item.h,item.fill,item.stroke);
 			break;
 		case 3:
-			tmp = graphics_GItem.Path(graphics_GPathTools.move(item.p,mx,my),item.fill,item.stroke);
+			tmp = graphics_GItem.Path(graphics_GPathTools.move(item.p,mx,my),item.x,item.y,item.fill,item.stroke);
 			break;
 		case 4:
 			tmp = graphics_GItem.Text(item.x + mx,item.y + my,item.s,item.font,item.size,item.bold,item.italic,item.color);
@@ -563,7 +571,10 @@ graphics_GItemsTools.move = function(items,mx,my) {
 	}
 	return result;
 };
-graphics_GItemsTools.getBoundingArea = function(items) {
+graphics_GItemsTools.getBoundingArea = function(items,scaling) {
+	if(scaling == null) {
+		scaling = 1;
+	}
 	var getItemArea = function(item) {
 		switch(item._hx_index) {
 		case 0:
@@ -577,7 +588,7 @@ graphics_GItemsTools.getBoundingArea = function(items) {
 			var _g1 = item.y;
 			return graphics_GArea._new(_g,_g1,item.w + _g,_g1 + item.h);
 		case 3:
-			return graphics_GPathTools.getBoundingArea(item.p);
+			return graphics_GArea.move(graphics_GPathTools.getBoundingArea(item.p),scaling * item.x,scaling * item.y);
 		default:
 			return graphics_GArea._new(0,0,0,0);
 		}
@@ -665,7 +676,7 @@ graphics_GItemsTools.scale = function(items,scaleShape,scaleStroke) {
 			tmp = graphics_GItem.Ellipse(item.x * scaleShape,item.y * scaleShape,item.w * scaleShape,item.h * scaleShape,item.fill,fStroke(item.stroke));
 			break;
 		case 3:
-			tmp = graphics_GItem.Path(graphics_GPathTools.scale(item.p,scaleShape),item.fill,fStroke(item.stroke));
+			tmp = graphics_GItem.Path(graphics_GPathTools.scale(item.p,scaleShape),item.x,item.y,item.fill,fStroke(item.stroke));
 			break;
 		case 4:
 			tmp = graphics_GItem.Text(item.x * scaleShape,item.y * scaleShape,item.s,item.font,item.size * scaleShape,item.bold,item.italic,item.color);
@@ -985,7 +996,7 @@ graphics_GSurfaceBase.prototype = {
 		var _g1 = _this.length;
 		while(_g < _g1) {
 			var i = _g++;
-			result[i] = graphics_GItemsTools.getBoundingArea(_this[i].items);
+			result[i] = graphics_GItemsTools.getBoundingArea(_this[i].items,this.scalingShapes);
 		}
 		this.boundingArea = graphics_GArea.combineAreas(result);
 		this.boundingSize = graphics_GArea.getSize(this.boundingArea);
@@ -1050,10 +1061,13 @@ graphics_GSurfaceCanvas.prototype = $extend(graphics_GSurfaceBase.prototype,{
 					ctx.ellipse(item.x + _g3 / 2,item.y + _g4 / 2,_g3 / 2,_g4 / 2,Math.PI / 4,0,2 * Math.PI);
 					break;
 				case 3:
+					var _g5 = item.p;
+					var path = _g5;
+					path = graphics_GPathTools.move(_g5,this.scalingShapes * item.x,this.scalingLines * item.y);
 					stroke = item.stroke;
 					fill = item.fill;
 					ctx.beginPath();
-					path2d = new Path2D(graphics_GPathTools.toString(item.p));
+					path2d = new Path2D(graphics_GPathTools.toString(path));
 					break;
 				case 4:
 					ctx.font = "" + item.size + "px " + item.font;
@@ -1080,10 +1094,10 @@ graphics_GSurfaceCanvas.prototype = $extend(graphics_GSurfaceBase.prototype,{
 					case 0:
 						break;
 					case 1:
-						var _g5 = stroke.width;
-						if(_g5 > 0) {
+						var _g6 = stroke.width;
+						if(_g6 > 0) {
 							ctx.strokeStyle = graphics_GTools.getColor(stroke.c);
-							ctx.lineWidth = _g5;
+							ctx.lineWidth = _g6;
 							if(path2d == null) {
 								ctx.stroke();
 							} else {
@@ -1106,6 +1120,7 @@ var graphics_GSurfaceSvg = function(scalingShapes,scalingLines) {
 	if(scalingShapes == null) {
 		scalingShapes = 1;
 	}
+	this.pathCache = new haxe_ds_StringMap();
 	graphics_GSurfaceBase.call(this);
 	this.scalingShapes = scalingShapes;
 	this.scalingLines = scalingLines;
@@ -1115,6 +1130,7 @@ graphics_GSurfaceSvg.__interfaces__ = [graphics_ISurfaceRenderer];
 graphics_GSurfaceSvg.__super__ = graphics_GSurfaceBase;
 graphics_GSurfaceSvg.prototype = $extend(graphics_GSurfaceBase.prototype,{
 	svg: null
+	,pathCache: null
 	,render: function() {
 		graphics_GSurfaceBase.prototype.beforeRender.call(this);
 		this.svg = Xml.parse("<svg width=\"" + this.boundingSize.w + "\" height=\"" + this.boundingSize.h + "\" viewBox=\"0 0 " + this.boundingSize.w + " " + this.boundingSize.h + "\"></svg>").firstElement();
@@ -1248,7 +1264,16 @@ graphics_GSurfaceSvg.prototype = $extend(graphics_GSurfaceBase.prototype,{
 					var _g21 = item.p;
 					var _g22 = item.fill;
 					var _g23 = item.stroke;
-					var item2 = Xml.createElement("path");
+					var pathId = haxe_crypto_Md5.encode(graphics_GPathTools.toString(_g21));
+					haxe_Log.trace(pathId,{ fileName : "src/graphics/GSurfaceSvg.hx", lineNumber : 109, className : "graphics.GSurfaceSvg", methodName : "render"});
+					if(!Object.prototype.hasOwnProperty.call(this.pathCache.h,pathId)) {
+						this.pathCache.h[pathId] = true;
+						eLayer.addChild(Xml.parse("<g style=\"display:inherit\"><path id=\"" + pathId + "\" d=\"" + graphics_GPathTools.toString(_g21) + "\" /></g>"));
+					}
+					var use = Xml.createElement("use");
+					use.set("href","#" + pathId);
+					use.set("x","" + this.scalingShapes * item.x);
+					use.set("y","" + this.scalingShapes * item.y);
 					var style3 = "";
 					if(_g23 == null) {
 						style3 = " stroke:none; ";
@@ -1276,10 +1301,9 @@ graphics_GSurfaceSvg.prototype = $extend(graphics_GSurfaceBase.prototype,{
 						}
 					}
 					if(style3 != "") {
-						item2.set("style",style3);
+						use.set("style",style3);
 					}
-					item2.set("d",graphics_GPathTools.toString(_g21));
-					eLayer.addChild(item2);
+					eLayer.addChild(use);
 					break;
 				case 4:
 					var _g25 = item.color;
@@ -1746,6 +1770,164 @@ haxe_ValueException.prototype = $extend(haxe_Exception.prototype,{
 	}
 	,__class__: haxe_ValueException
 });
+var haxe_crypto_Md5 = function() {
+};
+haxe_crypto_Md5.__name__ = "haxe.crypto.Md5";
+haxe_crypto_Md5.encode = function(s) {
+	var m = new haxe_crypto_Md5();
+	return m.hex(m.doEncode(haxe_crypto_Md5.str2blks(s)));
+};
+haxe_crypto_Md5.str2blks = function(str) {
+	var str1 = haxe_io_Bytes.ofString(str);
+	var nblk = (str1.length + 8 >> 6) + 1;
+	var blks = [];
+	var blksSize = nblk * 16;
+	var _g = 0;
+	while(_g < blksSize) blks[_g++] = 0;
+	var i = 0;
+	var max = str1.length;
+	var l = max * 8;
+	while(i < max) {
+		blks[i >> 2] |= str1.b[i] << (l + i) % 4 * 8;
+		++i;
+	}
+	blks[i >> 2] |= 128 << (l + i) % 4 * 8;
+	var k = nblk * 16 - 2;
+	blks[k] = l & 255;
+	blks[k] = (blks[k] |= (l >>> 8 & 255) << 8) | (l >>> 16 & 255) << 16;
+	blks[k] |= (l >>> 24 & 255) << 24;
+	return blks;
+};
+haxe_crypto_Md5.prototype = {
+	bitOR: function(a,b) {
+		return (a >>> 1 | b >>> 1) << 1 | (a & 1 | b & 1);
+	}
+	,bitXOR: function(a,b) {
+		return (a >>> 1 ^ b >>> 1) << 1 | a & 1 ^ b & 1;
+	}
+	,bitAND: function(a,b) {
+		return (a >>> 1 & b >>> 1) << 1 | a & 1 & (b & 1);
+	}
+	,addme: function(x,y) {
+		var lsw = (x & 65535) + (y & 65535);
+		return (x >> 16) + (y >> 16) + (lsw >> 16) << 16 | lsw & 65535;
+	}
+	,hex: function(a) {
+		var str = "";
+		var _g = 0;
+		while(_g < a.length) {
+			var num = a[_g];
+			++_g;
+			str += "0123456789abcdef".charAt(num >> 4 & 15) + "0123456789abcdef".charAt(num & 15);
+			str += "0123456789abcdef".charAt(num >> 12 & 15) + "0123456789abcdef".charAt(num >> 8 & 15);
+			str += "0123456789abcdef".charAt(num >> 20 & 15) + "0123456789abcdef".charAt(num >> 16 & 15);
+			str += "0123456789abcdef".charAt(num >> 28 & 15) + "0123456789abcdef".charAt(num >> 24 & 15);
+		}
+		return str;
+	}
+	,rol: function(num,cnt) {
+		return num << cnt | num >>> 32 - cnt;
+	}
+	,cmn: function(q,a,b,x,s,t) {
+		return this.addme(this.rol(this.addme(this.addme(a,q),this.addme(x,t)),s),b);
+	}
+	,ff: function(a,b,c,d,x,s,t) {
+		return this.cmn(this.bitOR(this.bitAND(b,c),this.bitAND(~b,d)),a,b,x,s,t);
+	}
+	,gg: function(a,b,c,d,x,s,t) {
+		return this.cmn(this.bitOR(this.bitAND(b,d),this.bitAND(c,~d)),a,b,x,s,t);
+	}
+	,hh: function(a,b,c,d,x,s,t) {
+		return this.cmn(this.bitXOR(this.bitXOR(b,c),d),a,b,x,s,t);
+	}
+	,ii: function(a,b,c,d,x,s,t) {
+		return this.cmn(this.bitXOR(c,this.bitOR(b,~d)),a,b,x,s,t);
+	}
+	,doEncode: function(x) {
+		var a = 1732584193;
+		var b = -271733879;
+		var c = -1732584194;
+		var d = 271733878;
+		var i = 0;
+		while(i < x.length) {
+			var olda = a;
+			var oldb = b;
+			var oldc = c;
+			var oldd = d;
+			a = this.ff(a,b,c,d,x[i],7,-680876936);
+			d = this.ff(d,a,b,c,x[i + 1],12,-389564586);
+			c = this.ff(c,d,a,b,x[i + 2],17,606105819);
+			b = this.ff(b,c,d,a,x[i + 3],22,-1044525330);
+			a = this.ff(a,b,c,d,x[i + 4],7,-176418897);
+			d = this.ff(d,a,b,c,x[i + 5],12,1200080426);
+			c = this.ff(c,d,a,b,x[i + 6],17,-1473231341);
+			b = this.ff(b,c,d,a,x[i + 7],22,-45705983);
+			a = this.ff(a,b,c,d,x[i + 8],7,1770035416);
+			d = this.ff(d,a,b,c,x[i + 9],12,-1958414417);
+			c = this.ff(c,d,a,b,x[i + 10],17,-42063);
+			b = this.ff(b,c,d,a,x[i + 11],22,-1990404162);
+			a = this.ff(a,b,c,d,x[i + 12],7,1804603682);
+			d = this.ff(d,a,b,c,x[i + 13],12,-40341101);
+			c = this.ff(c,d,a,b,x[i + 14],17,-1502002290);
+			b = this.ff(b,c,d,a,x[i + 15],22,1236535329);
+			a = this.gg(a,b,c,d,x[i + 1],5,-165796510);
+			d = this.gg(d,a,b,c,x[i + 6],9,-1069501632);
+			c = this.gg(c,d,a,b,x[i + 11],14,643717713);
+			b = this.gg(b,c,d,a,x[i],20,-373897302);
+			a = this.gg(a,b,c,d,x[i + 5],5,-701558691);
+			d = this.gg(d,a,b,c,x[i + 10],9,38016083);
+			c = this.gg(c,d,a,b,x[i + 15],14,-660478335);
+			b = this.gg(b,c,d,a,x[i + 4],20,-405537848);
+			a = this.gg(a,b,c,d,x[i + 9],5,568446438);
+			d = this.gg(d,a,b,c,x[i + 14],9,-1019803690);
+			c = this.gg(c,d,a,b,x[i + 3],14,-187363961);
+			b = this.gg(b,c,d,a,x[i + 8],20,1163531501);
+			a = this.gg(a,b,c,d,x[i + 13],5,-1444681467);
+			d = this.gg(d,a,b,c,x[i + 2],9,-51403784);
+			c = this.gg(c,d,a,b,x[i + 7],14,1735328473);
+			b = this.gg(b,c,d,a,x[i + 12],20,-1926607734);
+			a = this.hh(a,b,c,d,x[i + 5],4,-378558);
+			d = this.hh(d,a,b,c,x[i + 8],11,-2022574463);
+			c = this.hh(c,d,a,b,x[i + 11],16,1839030562);
+			b = this.hh(b,c,d,a,x[i + 14],23,-35309556);
+			a = this.hh(a,b,c,d,x[i + 1],4,-1530992060);
+			d = this.hh(d,a,b,c,x[i + 4],11,1272893353);
+			c = this.hh(c,d,a,b,x[i + 7],16,-155497632);
+			b = this.hh(b,c,d,a,x[i + 10],23,-1094730640);
+			a = this.hh(a,b,c,d,x[i + 13],4,681279174);
+			d = this.hh(d,a,b,c,x[i],11,-358537222);
+			c = this.hh(c,d,a,b,x[i + 3],16,-722521979);
+			b = this.hh(b,c,d,a,x[i + 6],23,76029189);
+			a = this.hh(a,b,c,d,x[i + 9],4,-640364487);
+			d = this.hh(d,a,b,c,x[i + 12],11,-421815835);
+			c = this.hh(c,d,a,b,x[i + 15],16,530742520);
+			b = this.hh(b,c,d,a,x[i + 2],23,-995338651);
+			a = this.ii(a,b,c,d,x[i],6,-198630844);
+			d = this.ii(d,a,b,c,x[i + 7],10,1126891415);
+			c = this.ii(c,d,a,b,x[i + 14],15,-1416354905);
+			b = this.ii(b,c,d,a,x[i + 5],21,-57434055);
+			a = this.ii(a,b,c,d,x[i + 12],6,1700485571);
+			d = this.ii(d,a,b,c,x[i + 3],10,-1894986606);
+			c = this.ii(c,d,a,b,x[i + 10],15,-1051523);
+			b = this.ii(b,c,d,a,x[i + 1],21,-2054922799);
+			a = this.ii(a,b,c,d,x[i + 8],6,1873313359);
+			d = this.ii(d,a,b,c,x[i + 15],10,-30611744);
+			c = this.ii(c,d,a,b,x[i + 6],15,-1560198380);
+			b = this.ii(b,c,d,a,x[i + 13],21,1309151649);
+			a = this.ii(a,b,c,d,x[i + 4],6,-145523070);
+			d = this.ii(d,a,b,c,x[i + 11],10,-1120210379);
+			c = this.ii(c,d,a,b,x[i + 2],15,718787259);
+			b = this.ii(b,c,d,a,x[i + 9],21,-343485551);
+			a = this.addme(a,olda);
+			b = this.addme(b,oldb);
+			c = this.addme(c,oldc);
+			d = this.addme(d,oldd);
+			i += 16;
+		}
+		return [a,b,c,d];
+	}
+	,__class__: haxe_crypto_Md5
+};
 var haxe_ds_List = function() {
 	this.length = 0;
 };
@@ -1845,6 +2027,62 @@ haxe_ds__$StringMap_StringMapKeyIterator.prototype = {
 	}
 	,__class__: haxe_ds__$StringMap_StringMapKeyIterator
 };
+var haxe_io_Bytes = function(data) {
+	this.length = data.byteLength;
+	this.b = new Uint8Array(data);
+	this.b.bufferValue = data;
+	data.hxBytes = this;
+	data.bytes = this.b;
+};
+haxe_io_Bytes.__name__ = "haxe.io.Bytes";
+haxe_io_Bytes.ofString = function(s,encoding) {
+	if(encoding == haxe_io_Encoding.RawNative) {
+		var buf = new Uint8Array(s.length << 1);
+		var _g = 0;
+		var _g1 = s.length;
+		while(_g < _g1) {
+			var i = _g++;
+			var c = s.charCodeAt(i);
+			buf[i << 1] = c & 255;
+			buf[i << 1 | 1] = c >> 8;
+		}
+		return new haxe_io_Bytes(buf.buffer);
+	}
+	var a = [];
+	var i = 0;
+	while(i < s.length) {
+		var c = s.charCodeAt(i++);
+		if(55296 <= c && c <= 56319) {
+			c = c - 55232 << 10 | s.charCodeAt(i++) & 1023;
+		}
+		if(c <= 127) {
+			a.push(c);
+		} else if(c <= 2047) {
+			a.push(192 | c >> 6);
+			a.push(128 | c & 63);
+		} else if(c <= 65535) {
+			a.push(224 | c >> 12);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		} else {
+			a.push(240 | c >> 18);
+			a.push(128 | c >> 12 & 63);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		}
+	}
+	return new haxe_io_Bytes(new Uint8Array(a).buffer);
+};
+haxe_io_Bytes.prototype = {
+	length: null
+	,b: null
+	,__class__: haxe_io_Bytes
+};
+var haxe_io_Encoding = $hxEnums["haxe.io.Encoding"] = { __ename__:true,__constructs__:null
+	,UTF8: {_hx_name:"UTF8",_hx_index:0,__enum__:"haxe.io.Encoding",toString:$estr}
+	,RawNative: {_hx_name:"RawNative",_hx_index:1,__enum__:"haxe.io.Encoding",toString:$estr}
+};
+haxe_io_Encoding.__constructs__ = [haxe_io_Encoding.UTF8,haxe_io_Encoding.RawNative];
 var haxe_iterators_ArrayIterator = function(array) {
 	this.current = 0;
 	this.array = array;

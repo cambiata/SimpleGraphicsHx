@@ -1,5 +1,7 @@
 package graphics;
 
+import haxe.crypto.Md5;
+import haxe.ds.StringMap;
 import graphics.GSurface;
 import graphics.GCore;
 import graphics.GTools;
@@ -7,10 +9,15 @@ import graphics.GItems;
 
 using graphics.GTools;
 using tools.EnumTools;
+using tools.FloatTools;
 using Std;
 
 class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 	var svg:Xml;
+
+	#if use_path_cache
+	final pathCache = new StringMap<Bool>();
+	#end
 
 	public function new(scalingShapes:Float = 1, scalingLines:Float = 1) {
 		super();
@@ -41,7 +48,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						var style = '';
 						switch s {
 							case null: style += ' stroke:none; ';
-							case Stroke(c, w): style += 'stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case Stroke(c, w): style += 'stroke: ${c.getColor()}; stroke-width: ${w.r3().string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
@@ -60,7 +67,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						var style = '';
 						switch s {
 							case null: style += ' stroke:none; ';
-							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.r3().string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
@@ -85,7 +92,7 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 						var style = '';
 						switch s {
 							case null: style += ' stroke:none; ';
-							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.r3().string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
@@ -100,12 +107,32 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 							item.set('style', style);
 
 						eLayer.addChild(item);
-					case Path(path, f, s):
+					case Path(path, x, y, f, s):
+						#if use_path_cache
+						// use path cache ------------------------------------------------
+						final pathId = Md5.encode(path.toString());
+						if (!this.pathCache.exists(pathId)) {
+							this.pathCache.set(pathId, true);
+							final pathItem = Xml.parse('<g style="display:none"><path id="$pathId" d="${path.toString()}" /></g>');
+							eLayer.addChild(pathItem);
+						}
+
+						final item = Xml.createElement('use');
+						item.set('href', '#' + pathId);
+						item.set('x', '${this.scalingShapes * x}');
+						item.set('y', '${this.scalingShapes * y}');
+						#else
+						// don't use path cache --------------------------------------------------------------
 						final item = Xml.createElement('path');
+						path = path.move(this.scalingShapes * x, this.scalingShapes * y);
+						item.set('d', path.toString());
+						#end
+						// ----------------------------------------------------------------------------
+
 						var style = '';
 						switch s {
 							case null: style += ' stroke:none; ';
-							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.string()};';
+							case Stroke(c, w): style += ' stroke: ${c.getColor()}; stroke-width: ${w.r3().string()};';
 							case None: style += ' stroke:none; ';
 							default:
 						}
@@ -118,10 +145,8 @@ class GSurfaceSvg extends GSurfaceBase implements ISurfaceRenderer<Xml> {
 
 						if (style != '')
 							item.set('style', style);
-						var pathD = path.toString();
-						item.set('d', pathD);
-
 						eLayer.addChild(item);
+
 					case Text(x, y, text, family, size, bold, italic, color):
 						final sFontWeight = bold ? 'font-weight="bold"' : '';
 						final sFontColor = color != null ? 'style="fill: $color"' : '';

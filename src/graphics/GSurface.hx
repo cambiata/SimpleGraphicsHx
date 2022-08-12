@@ -70,7 +70,7 @@ class GSurfaceBase {
 				case Layer(items, p, s, o, r):
 					items;
 			}
-			return items.getBoundingArea();
+			return items.getBoundingArea(this.scalingShapes);
 		});
 
 		this.boundingArea = GArea.combineAreas(layerAreas);

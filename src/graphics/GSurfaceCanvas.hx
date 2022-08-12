@@ -51,7 +51,8 @@ class GSurfaceCanvas extends GSurfaceBase implements ISurfaceRenderer<js.html.Ca
 						fill = f;
 						ctx.beginPath();
 						ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, Math.PI / 4, 0, 2 * Math.PI);
-					case Path(path, f, s):
+					case Path(path, x, y, f, s):
+						path = path.move(this.scalingShapes * x, this.scalingLines * y);
 						stroke = s;
 						fill = f;
 						ctx.beginPath();

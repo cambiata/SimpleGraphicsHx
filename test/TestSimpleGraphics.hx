@@ -80,9 +80,10 @@ class TestA implements utest.ITest {
 		final items:GItems = [
 			//
 			Ellipse(50, 50, 100, 100, GFill.Solid(Gray), GStroke.Stroke(Black, 1)),
-			Path(GPath.fromString('M0 0L100 0L100 100L0 100L0 0 '), GFill.Solid(Red), GStroke.Stroke(Blue, 10)),
-			Path(GPath.fromString('M100 100L200 100L200 200L100 200L100 100 '), GFill.Solid(Yellow), GStroke.Stroke(Purple, 10)),
-			Text(0, 20, 'Hello, baby!', 'Arial', 20, false, false, White),
+			Path(GPath.fromString('M0 0L100 0L100 100L0 100L0 0 '), 0, 0, GFill.Solid(Red), GStroke.Stroke(Blue, 10)),
+			// Path(GPath.fromString('M100 100L200 100L200 200L100 200L100 100 '), 0, 0, GFill.Solid(Yellow), GStroke.Stroke(Purple, 10)),
+			Path(GPath.fromString('M0 0L100 0L100 100L0 100L0 0 '), 100, 100, GFill.Solid(Yellow), GStroke.Stroke(Purple, 10)),
+			Text(0, 30, 'Hello, baby!', 'Arial', 36, false, false, Black),
 		];
 		// output
 		outputToBrowser(items);
@@ -93,12 +94,14 @@ class TestA implements utest.ITest {
 
 	function outputToBrowser(items:GItems) {
 		// render to svg
-		final sSurface = new GSurfaceSvg();
+		final scale:Float = 2;
+
+		final sSurface = new GSurfaceSvg(scale, scale);
 		sSurface.addItems(items);
 		final svg = sSurface.render();
 
 		// render to canvas
-		final cSurface = new GSurfaceCanvas();
+		final cSurface = new GSurfaceCanvas(scale, scale);
 		cSurface.addItems(items);
 		final canvas = cSurface.render();
 
