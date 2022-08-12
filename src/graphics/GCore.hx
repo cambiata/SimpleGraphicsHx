@@ -33,12 +33,6 @@ enum GValue {
 	AValue(v:Map<Float, Float>);
 }
 
-/*
-	enum GPoint {
-	SPoint(x:Float, y:Float);
-	APoint(v:Map<Float, {x:Float, y:Float}>);
-	}
- */
 typedef GPoint = {x:Float, y:Float};
 typedef GSize = {w:Float, h:Float};
 typedef GRectsBase = Array<GRect>;
@@ -105,21 +99,6 @@ class GRectTools {
 		rect.y = rect.y + y;
 		return rect;
 	}
-
-	// static public function overlapX(left:GRect, right:GRect):Float {
-	// 	if ((right.y + right.h) <= left.y)
-	// 		return 0;
-	// 	if (right.y >= (left.y + left.h))
-	// 		return 0;
-	// 	return (left.x + left.w) - right.x;
-	// }
-	// public function overlapX(other:GRectangle, xFactor:Float = 0):Float {
-	// 	if (other.bottom <= get_top())
-	// 		return 0;
-	// 	if (other.top >= get_bottom())
-	// 		return 0;
-	// 	return get_right() - other.left - xFactor;
-	// }
 }
 
 typedef GAreaBase = {x:Float, y:Float, x2:Float, y2:Float};
